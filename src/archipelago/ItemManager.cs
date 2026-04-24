@@ -91,6 +91,14 @@ namespace FEZAP.Archipelago
                 case "Anti-Cube":
                     GameState.SaveData.SecretCubes += 1;
                     break;
+                case "Cube Bit":
+                    GameState.SaveData.CollectedParts += 1;
+                    if (GameState.SaveData.CollectedParts == 8)
+                    {
+                        GameState.SaveData.CollectedParts = 0;
+                        GameState.SaveData.CubeShards += 1;
+                    } 
+                    break;
                 case "Owl":
                     GameState.SaveData.CollectedOwls += 1;
                     break;
