@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <DebugType>full</DebugType>
@@ -9,26 +9,31 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 
+  <Import Project="$(ProjectDir)UserProperties.xml" />
+
+  <Target Name="VerifyModReferences" BeforeTargets="Build">
+    <Error Text="You forgot to edit UserProperties.xml." Condition="$(UserPropertiesNotSetUp) == True" />
+  </Target>
+
   <Target Name="PrepareMod" AfterTargets="Build">
     <PropertyGroup>
-      <!-- Replace with your fez Mod directory path -->
-      <FezModDirectory>D:\Games\Steam\steamapps\common\FEZ\Mods\</FezModDirectory>
-      <!-- <FezModDirectory>/home/<user>/.steam/steam/steamapps/common/FEZ/Mods/</FezModDirectory> -->
+      <ModCompileOutputDir Condition="Exists($(ModOutputDir))">$(ModOutputDir)\</ModCompileOutputDir>
+      <ModCompileOutputDir Condition="!Exists($(ModOutputDir))">$(ProjectDir)out\</ModCompileOutputDir>
     </PropertyGroup>
     <ItemGroup>
         <ModdedAssets Include="$(ProjectDir)\Assets\**\*.*" />
     </ItemGroup>
 
-    <Copy SourceFiles="$(TargetDir)$(TargetName).dll;$(TargetDir)$(TargetName).pdb" DestinationFolder="$(FezModDirectory)\FezAP\" Retries="0" />
-    <Copy SourceFiles="$(ProjectDir)Metadata.xml" DestinationFolder="$(FezModDirectory)\FezAP\" Retries="0" />
-    <Copy SourceFiles="@(ModdedAssets)" DestinationFolder="$(FezModDirectory)\FezAP\Assets\%(RecursiveDir)" Retries="0" />
-    <Copy SourceFiles="$(ProjectDir)\dependencies\Archipelago.MultiClient.Net.dll" DestinationFolder="$(FezModDirectory)\FezAP\" Retries="0" />
-    <Copy SourceFiles="$(ProjectDir)\dependencies\Newtonsoft.Json.dll" DestinationFolder="$(FezModDirectory)\FezAP\" Retries="0" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).dll;$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ModCompileOutputDir)" Retries="0" />
+    <Copy SourceFiles="$(ProjectDir)Metadata.xml" DestinationFolder="$(ModCompileOutputDir)" Retries="0" />
+    <Copy SourceFiles="@(ModdedAssets)" DestinationFolder="$(ModCompileOutputDir)Assets\%(RecursiveDir)" Retries="0" />
+    <Copy SourceFiles="$(PkgArchipelago_MultiClient_Net)\lib\netstandard2.0\Archipelago.MultiClient.Net.dll" DestinationFolder="$(ModCompileOutputDir)" Retries="0" />
+    <Copy SourceFiles="$(PkgArchipelago_MultiClient_Net)\lib\netstandard2.0\Newtonsoft.Json.dll" DestinationFolder="$(ModCompileOutputDir)" Retries="0" />
   </Target>
 
   <!-- Archipelago C# client package -->
   <ItemGroup>
-    <PackageReference Include="Archipelago.MultiClient.Net" Version="6.6.1" />
+    <PackageReference Include="Archipelago.MultiClient.Net" Version="6.6.1" GeneratePathProperty="true"/>
     <PackageReference Include="Archipelago.MultiClient.Net.Analyzers" Version="1.5.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -38,43 +43,43 @@
   <!-- Assemblies. Please use your own copies of FEZ's binaries. -->
   <ItemGroup>
     <Reference Include="Common">
-      <HintPath>$(ProjectDir)\dependencies\Common.dll</HintPath>
+      <HintPath>$(FezDir)\Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ContentSerialization">
-      <HintPath>$(ProjectDir)\dependencies\ContentSerialization.dll</HintPath>
+      <HintPath>$(FezDir)\ContentSerialization.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="EasyStorage">
-      <HintPath>$(ProjectDir)\dependencies\EasyStorage.dll</HintPath>
+      <HintPath>$(FezDir)\EasyStorage.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="FEZ">
-      <HintPath>$(ProjectDir)\dependencies\FEZ.exe</HintPath>
+      <HintPath>$(FezDir)\FEZ.exe</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="FezEngine">
-      <HintPath>$(ProjectDir)\dependencies\FezEngine.dll</HintPath>
+      <HintPath>$(FezDir)\FezEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="FNA">
-      <HintPath>$(ProjectDir)\dependencies\FNA.dll</HintPath>
+      <HintPath>$(FezDir)\FNA.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="XnaWordWrapCore">
-      <HintPath>$(ProjectDir)\dependencies\XnaWordWrapCore.dll</HintPath>
+      <HintPath>$(FezDir)\XnaWordWrapCore.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod">
-      <HintPath>$(ProjectDir)\dependencies\MonoMod.exe</HintPath>
+      <HintPath>$(MonoModDir)\MonoMod.exe</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
-      <HintPath>$(ProjectDir)\dependencies\MonoMod.RuntimeDetour.dll</HintPath>
+      <HintPath>$(MonoModDir)\MonoMod.RuntimeDetour.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.Utils">
-      <HintPath>$(ProjectDir)\dependencies\MonoMod.Utils.dll</HintPath>
+      <HintPath>$(MonoModDir)\MonoMod.Utils.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
