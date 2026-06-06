@@ -192,7 +192,6 @@ namespace FEZAP.Archipelago
             new("Bell Tower Anti-Cube", "BELL_TOWER", LocationType.DestroyedTriles, [17, 44, 19]),
             new("Watertower Secret Anti-Cube", "WATERTOWER_SECRET", LocationType.DestroyedTriles, [9, 16, 12]),
             new("Telescope Anti-Cube", "TELESCOPE", LocationType.DestroyedTriles, [18, 36, 20]),
-            new("Zu House QR Anti-Cube", "ZU_HOUSE_QR", LocationType.DestroyedTriles, [9, 6, 8]),
             new("Zu Unfold Anti-Cube", "ZU_UNFOLD", LocationType.DestroyedTriles, [9, 59, 12]),
             new("Code Machine Anti-Cube", "CODE_MACHINE", LocationType.DestroyedTriles, [35, 40, 10]),
             new("Boileroom Anti-Cube", "BOILEROOM", LocationType.DestroyedTriles, [10, 10, 12]),
@@ -204,7 +203,6 @@ namespace FEZAP.Archipelago
             new("Quantum Anti-Cube", "QUANTUM", LocationType.DestroyedTriles, [44, 83, 38]),
             new("Skull B Anti-Cube", "SKULL_B", LocationType.DestroyedTriles, [20, 21, 19]),
             new("Zu Heads Anti-Cube", "ZU_HEADS", LocationType.DestroyedTriles, [9, 68, 9]),
-            new("Parlor Anti-Cube", "PARLOR", LocationType.DestroyedTriles, [18, 4, 5]),
             new("Sewer Tune Fork Anti-Cube", "SEWER_FORK", LocationType.DestroyedTriles, [11, 41, 14]),
 
             // Use count and alternate spawn position due to possible overlap with other locations
@@ -212,6 +210,10 @@ namespace FEZAP.Archipelago
             new("Zu Bridge Floor Anti-Cube", "ZU_BRIDGE", LocationType.DestroyedTriles, [41, 57, 41]),
             new("Zu Code Loop Anti-Cube", "ZU_CODE_LOOP", LocationType.DestroyedTriles, [5, 42, 5], count: 2),
             new("Zu Code Loop Anti-Cube", "ZU_CODE_LOOP", LocationType.DestroyedTriles, [5, 42, 3]),
+
+            // Parlor cube accessible in 2 locations
+            new("Parlor Anti-Cube", "PARLOR", LocationType.DestroyedTriles, [18, 4, 5]),
+            new("Parlor Anti-Cube", "ZU_HOUSE_QR", LocationType.DestroyedTriles, [9, 6, 8]),
 
             // Throne cube accessible in 3 locations
             new("Throne Anti-Cube", "SEWER_QR", LocationType.DestroyedTriles, [15, 41, 14]),
