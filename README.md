@@ -25,6 +25,7 @@ The remaining space in the item pool is filled with traps and filler with a rati
 ## Installing
 
 - Follow the instructions to setup HAT.
+  - **Fez AP is currently incompatible with the latest HAT release, please use [HAT v1.2.1](https://github.com/FEZModding/HAT/releases/tag/v1.2.1).**
 - Download the latest `FezAP.zip` from the releases tab and place it in your `Mods` folder.
 - If all is well, when running `MONOMODDED_FEZ.exe`, you should see the HAT logo and the FEZAP version in the top left.
 
