@@ -1,9 +1,6 @@
 ﻿using FEZUG.Features.Console;
 using FEZUG.Helpers;
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace FEZUG.Features.Hud
 {

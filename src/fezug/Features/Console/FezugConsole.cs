@@ -1,17 +1,10 @@
-﻿using Common;
-using FEZAP;
-using FezEngine.Components;
-using FezEngine.Services;
-using FezEngine.Structure.Input;
+﻿using FezEngine.Components;
 using FezEngine.Tools;
-using FezGame.Services;
 using FEZUG.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Concurrent;
 using System.Reflection;
 
 namespace FEZUG.Features.Console
@@ -31,7 +24,7 @@ namespace FEZUG.Features.Console
             public ParsedCommandSequence(string raw)
             {
                 Original = raw;
-                Parse(raw);
+                Parse(raw.ToLower());
             }
 
             private void Parse(string commandString)
@@ -69,8 +62,8 @@ namespace FEZUG.Features.Console
 
                     if (endOfCommand)
                     {
-                        this.Add(currentTokens);
-                        currentTokens = new ParsedCommand();
+                        Add(currentTokens);
+                        currentTokens = new();
                     }
 
                     if (quote)
@@ -94,7 +87,7 @@ namespace FEZUG.Features.Console
                 // make sure remaining tokens get added
                 if(currentTokens.Count > 0)
                 {
-                    this.Add(currentTokens);
+                    Add(currentTokens);
                 }
             }
         }
@@ -114,7 +107,7 @@ namespace FEZUG.Features.Console
             {
                 ConsoleLine = consoleLine;
 
-                SuggestedWords = new List<string>() { "" };
+                SuggestedWords = new() {""};
                 previousCommandSequence = new ParsedCommandSequence("");
             }
 
@@ -148,8 +141,8 @@ namespace FEZUG.Features.Console
                 // only one word in current command - autocomplete from all available commands and variables
                 if (command.Count == 1)
                 {
-                    SuggestedWords.AddRange(matchingCommands.Select(c => c.Name).ToList());
-                    SuggestedWords.AddRange(matchingVariables.Select(c => $"{c.Name} {c.ValueString}").ToList());
+                    SuggestedWords.AddRange(matchingCommands.Select(c => c.Name));
+                    SuggestedWords.AddRange(matchingVariables.Select(c => $"{c.Name} {c.ValueString}"));
                 }
                 // more than one words - get a command-specific or variable-specific autocompletion
                 else if(command.Count > 1)
@@ -203,6 +196,10 @@ namespace FEZUG.Features.Console
                 if (CurrentSuggestedWord == "") return original;
                 string lastWord = previousCommandSequence.Last().Last();
 
+                if (lastWord.Length >= CurrentSuggestedWord.Length)
+                {
+                    return original;
+                }
                 return original + CurrentSuggestedWord.Substring(lastWord.Length);
             }
         }
@@ -212,7 +209,7 @@ namespace FEZUG.Features.Console
             public List<IFezugCommand> Commands { get; private set; }
 
             private bool bufferChangedByUser;
-            private List<string> previousBufferInputs;
+            private readonly List<string> previousBufferInputs;
 
             private string _buffer;
             public string Buffer { get => _buffer; set
@@ -226,6 +223,7 @@ namespace FEZUG.Features.Console
 
             public bool Enabled { get; set; }
 
+            private InputHelper InputHelper { get; } = InputHelper.Instance;
             public AutocompletionManager Autocompletion { get; private set; }
             public bool ShouldAutocomplete => bufferChangedByUser;
 
@@ -240,9 +238,9 @@ namespace FEZUG.Features.Console
 
                 TextInputEXT.TextInput += OnTextInput;
 
-                Commands = new List<IFezugCommand>();
+                Commands = new();
                 foreach (Type type in Assembly.GetExecutingAssembly().GetTypes()
-                .Where(t => t.IsClass && typeof(IFezugCommand).IsAssignableFrom(t)))
+                .Where(t => t.IsClass && typeof(IFezugCommand).IsAssignableFrom(t) && !t.IsAbstract && t.GetConstructor(Type.EmptyTypes) != null))
                 {
                     IFezugCommand command;
                     // command object could've been already creates as a feature - look for it first
@@ -263,7 +261,7 @@ namespace FEZUG.Features.Console
                 Enabled = false;
                 Buffer = "";
 
-                previousBufferInputs = new List<string>();
+                previousBufferInputs = new();
 
                 Autocompletion = new AutocompletionManager(this);
                 BufferChanged += Autocompletion.Refresh;
@@ -355,10 +353,22 @@ namespace FEZUG.Features.Console
                 var Inputs = (InputManager)InputManager;
 
                 // enable/disable console
-                if (InputHelper.IsKeyPressed(Keys.OemTilde))
+                if (InputHelper.IsKeyPressed(Keyboard.GetKeyFromScancodeEXT(Keys.OemTilde)) && (
+                    !Enabled || InputHelper.GetKeyModifierState() != InputHelper.KeyModifierState.Shift
+                ))
                 {
                     Enabled = !Enabled;
                     Inputs.Enabled = !Enabled;
+                    if (Enabled)
+                    {
+                        //ensure text input is on
+                        TextInputEXT.StartTextInput();
+                    }
+                    else
+                    {
+                        //StartTextInput should be paired with StopTextInput
+                        TextInputEXT.StopTextInput();
+                    }
                 }
 
                 if (!Enabled) return;
@@ -506,6 +516,38 @@ namespace FEZUG.Features.Console
                     CursorPosition = Buffer.Length;
                     SelectionLength = -CursorPosition;
                 }
+                if (ctrlHeld && InputHelper.IsKeyPressed(Keys.C))
+                {
+                    SDL2.SDL.SDL_SetClipboardText(GetSelectedText());
+                }
+                if (ctrlHeld && InputHelper.IsKeyPressed(Keys.X))
+                {
+                    SDL2.SDL.SDL_SetClipboardText(GetSelectedText());
+                    if (SelectionLength != 0)
+                    {
+                        if (SelectionLength < 0)
+                        {
+                            CursorPosition += SelectionLength;
+                            SelectionLength *= -1;
+                        }
+                        Buffer = GetBufferWithRemovedSelection();
+                    }
+                    else if (CursorPosition < Buffer.Length)
+                    {
+                        Buffer = Buffer.Remove(CursorPosition, 1);
+                    }
+                }
+                if (ctrlHeld && InputHelper.IsKeyPressed(Keys.V))
+                {
+                    string paste = SDL2.SDL.SDL_GetClipboardText();
+                    if (SelectionLength < 0)
+                    {
+                        CursorPosition += SelectionLength;
+                        SelectionLength *= -1;
+                    }
+                    Buffer = GetBufferWithRemovedSelection().Insert(CursorPosition, paste);
+                    CursorPosition += paste.Length;
+                }
             }
         }
 
@@ -515,29 +557,26 @@ namespace FEZUG.Features.Console
             Warning,
             Error,
         }
-
-        private struct ConsoleOutput(string Text, Color Color, TimeSpan Time)
+        private struct ConsoleOutput
         {
-            public string Text = Text;
-            public Color Color = Color;
-            public TimeSpan Time = Time;
+            public string Text;
+            public Color Color;
         }
 
-        private static readonly Dictionary<OutputType, Color> ConsoleOutputTypeColors = new Dictionary<OutputType, Color>()
+        private static readonly Dictionary<OutputType, Color> ConsoleOutputTypeColors = new()
         {
             {OutputType.Info, Color.White},
             {OutputType.Warning, Color.Yellow},
             {OutputType.Error, Color.IndianRed}
         };
 
-        private List<ConsoleOutput> outputBuffer;
-        private List<ConsoleOutput> fadingTextBuffer = [];
-        private readonly TimeSpan fadingTimeLimit = new(0, 0, 5);
+        //Note: this is a ConcurrentQueue for thread safety, just in case another mod wants to use a separate thread to write to the console
+        private readonly ConcurrentQueue<ConsoleOutput> outputBuffer = new();
         private float blinkingTime;
         private int previousCursor = 0;
 
         public CommandHandler Handler { get; private set; }
-        public int OutputBufferLimit { get; set; }
+        public int OutputBufferLimit { get; set; } = 24;
 
         public static FezugConsole Instance { get; private set; }
 
@@ -549,23 +588,34 @@ namespace FEZUG.Features.Console
         public void Initialize()
         {
             Handler = new CommandHandler();
-
-            outputBuffer = new List<ConsoleOutput>();
-            OutputBufferLimit = 24;
         }
 
         public static void Clear()
         {
-            Instance.outputBuffer.Clear();
+            while (Instance.outputBuffer.TryDequeue(out _))
+            {
+            }
+        }
+
+        //So external mods have an easy way to add new commands
+        public static void AddCommand(string name, string helpText, Func<string[], List<string>> autocompleteProvider, Func<string[], bool> executeCommand)
+        {
+            Instance.Handler.Commands.Add(new GenericFezugCommand(name, helpText, autocompleteProvider, executeCommand));
         }
 
         public void Update(GameTime gameTime)
         {
-            Handler.Update(gameTime);
+            // we're using update from draw loop to avoid dealing with slow update steps on low timescale.
+        }
+        public void UnfixedUpdate(GameTime gameTime)
+        {
+            var unscaledTime = Timescaler.GetUnscaledGameTime(gameTime);
+
+            Handler.Update(unscaledTime);
 
             if (!Handler.Enabled) return;
 
-            blinkingTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            blinkingTime += (float)unscaledTime.ElapsedGameTime.TotalSeconds;
             if(previousCursor != Handler.CursorPosition)
             {
                 previousCursor = Handler.CursorPosition;
@@ -575,23 +625,22 @@ namespace FEZUG.Features.Console
 
         private void Print(ConsoleOutput output)
         {
-            outputBuffer.Insert(0, output);
+            outputBuffer.Enqueue(output);
 
             while (outputBuffer.Count() > OutputBufferLimit)
             {
-                outputBuffer.RemoveAt(outputBuffer.Count - 1);
+                outputBuffer.TryDequeue(out _);
             }
         }
 
         public static void Print(string text, Color color)
         {
-            foreach(var splitText in text.Split(new[] { '\n' }))
+            foreach(var splitText in text.Split(new[] {'\n'}))
             {
                 Instance.Print(new ConsoleOutput
                 {
                     Text = splitText,
-                    Color = color,
-                    Time = Fezap.GameTime.TotalGameTime
+                    Color = color
                 });
             }
         }
@@ -608,71 +657,22 @@ namespace FEZUG.Features.Console
 
         public void DrawHUD(GameTime gameTime)
         {
+            UnfixedUpdate(gameTime);
+
+            if (!Handler.Enabled) return;
+
+            Viewport viewport = DrawingTools.GetViewport();
+
             int margin = 20;
             int padding = 5;
             int lineHeight = 32;
             int outputBottomPadding = 50;
 
-            Viewport viewport = DrawingTools.GetViewport();
+            // draw command line
+
             int commandY = viewport.Height - margin - lineHeight - padding * 2;
             int commandWidth = viewport.Width - margin * 2;
 
-            int outputWidth = commandWidth;
-            int outputInnerWidth = commandWidth - padding * 4;
-            int outputHeight = lineHeight * OutputBufferLimit + padding * 2;
-            int outputY = commandY - outputBottomPadding - outputHeight;
-
-            // NOTE: This code is terrible and duplicates other bits. It needs cleaning up, but works for now.
-            if (!Handler.Enabled)
-            {
-                fadingTextBuffer = [.. outputBuffer];
-                for (int i = 0; i < fadingTextBuffer.Count(); i++)
-                {
-                    if (Fezap.GameTime.TotalGameTime.Subtract(fadingTextBuffer[i].Time) > fadingTimeLimit)
-                    {
-                        fadingTextBuffer.RemoveAt(i);
-                    }
-                }
-
-                int fadedOutputPos = 0;
-                foreach (var outputLine in fadingTextBuffer)
-                {
-
-                    // Handle line wrapping
-                    List<ConsoleOutput> lines = [];
-                    string lineBuffer = "";
-                    foreach (var word in outputLine.Text.Split(' '))
-                    {
-                        float length = DrawingTools.DefaultFont.MeasureString(lineBuffer + word).X * DrawingTools.DefaultFontSize;
-                        if (length > outputInnerWidth)
-                        {
-                            lines.Add(new(lineBuffer, outputLine.Color, outputLine.Time));
-                            lineBuffer = $"{word} ";
-                        }
-                        else
-                        {
-                            lineBuffer += $"{word} ";
-                        }
-                    }
-                    lines.Add(new(lineBuffer, outputLine.Color, outputLine.Time));
-
-                    // Draw post-wrapping lines
-                    float fadeFactor = 1 - (Fezap.GameTime.TotalGameTime - outputLine.Time).Ticks / (float)fadingTimeLimit.Ticks;
-                    Color fadedColor = outputLine.Color * fadeFactor;
-                    for (int i = lines.Count - 1; i >= 0; i--)
-                    {
-                        fadedOutputPos++;
-                        DrawingTools.DrawText(
-                            lines[i].Text,
-                            new Vector2(margin + padding * 2, outputY + lineHeight * (OutputBufferLimit - fadedOutputPos) - 5),
-                            fadedColor
-                        );
-                    }
-                }
-                return;
-            }
-
-            // draw command line
             DrawingTools.DrawRect(new Rectangle(margin, commandY, commandWidth, lineHeight + padding*2), new Color(10, 10, 10, 220));
 
             // selection
@@ -718,12 +718,17 @@ namespace FEZUG.Features.Console
             }
 
             // draw output field
+            int outputWidth = commandWidth;
+            int outputInnerWidth = commandWidth - padding * 4;
+            int outputHeight = lineHeight * OutputBufferLimit + padding * 2;
+            int outputY = commandY - outputBottomPadding - outputHeight;
+
             DrawingTools.DrawRect(new Rectangle(margin, outputY, outputWidth, outputHeight), new Color(10, 10, 10, 220));
 
             var outputItemPos = 0;
-            foreach(var outputLine in outputBuffer)
+            foreach (var outputLine in outputBuffer.Reverse())
             {
-                List<string> lines = new List<string>();
+                List<string> lines = new();
                 string lineBuffer = "";
                 foreach(var word in outputLine.Text.Split(' '))
                 {

@@ -1,20 +1,8 @@
-﻿using EasyStorage;
-using FezEngine.Components;
-using FezEngine.Tools;
+﻿using FezEngine.Tools;
 using FezGame.Services;
 using FezGame.Structure;
 using FezGame.Tools;
-using FezGame.Components;
 using FEZUG.Features.Console;
-using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Reflection;
-using FezGame;
 using Common;
 
 namespace FEZUG.Features
@@ -115,7 +103,7 @@ namespace FEZUG.Features
             {
                 if (args.Length == 0)
                 {
-                    List<string> paths = Autocomplete([""]);
+                    List<string> paths = Autocomplete(new string[] {""});
                     if (paths == null || paths.Count == 0)
                     {
                         FezugConsole.Print("No available quicksaves");
@@ -169,8 +157,7 @@ namespace FEZUG.Features
                 if (!Directory.Exists(quicksaveDir))
                     return null;
 
-                return Directory.GetFiles(quicksaveDir).Select(path => Path.GetFileName(path))
-                    .Where(name => name.StartsWith(args[0])).ToList();
+                return Directory.GetFiles(quicksaveDir).Select(path => Path.GetFileName(path)).Where(name => name.StartsWith(args[0])).ToList();
             }
         }
     }

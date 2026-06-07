@@ -1,52 +1,57 @@
-using Common;
-using FezEngine.Components;
-using FezEngine.Tools;
+﻿using FezEngine.Tools;
 using FezGame;
-using FezGame.Components;
-using FezGame.Services;
 using FEZUG.Features;
-using FEZUG.Features.Console;
 using FEZUG.Helpers;
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FEZUG
 {
-    public class Fezug
+    public class Fezug : DrawableGameComponent
     {
-        public static string Version = "v0.1.5";  // This is the version that FEZUG was forked from for this
+        public static string Version = "v0.1.7";
 
         public List<IFezugFeature> Features { get; private set; }
 
         public static Fezug Instance { get; private set; }
         public static Fez Fez { get; private set; }
 
-        public Fezug()
+        public Fezug(Game game) : base(game)
         {
+            Fez = (Fez)game;
             Instance = this;
+            Enabled = true;
+            Visible = true;
+            DrawOrder = 99999;
         }
 
-        public void Initialize()
+        public override void Initialize()
         {
+            base.Initialize();
+
             DrawingTools.Init();
 
-            Features = new List<IFezugFeature>();
-            foreach (Type type in Assembly.GetExecutingAssembly().GetTypes()
-            .Where(t => t.IsClass && typeof(IFezugFeature).IsAssignableFrom(t)))
-            {
-                IFezugFeature feature = (IFezugFeature)Activator.CreateInstance(type);
-                ServiceHelper.InjectServices(feature);
-                Features.Add(feature);
-            }
+            Features = new();
 
-            foreach (var feature in Features)
-            {
-                feature.Initialize();
+            try {
+                Type[] types = Assembly.GetExecutingAssembly().GetTypes();
+                foreach (Type type in types.Where(t => t.IsClass && typeof(IFezugFeature).IsAssignableFrom(t) && !t.IsAbstract))
+                {
+                    IFezugFeature feature = (IFezugFeature)Activator.CreateInstance(type);
+                    ServiceHelper.InjectServices(feature);
+                    Features.Add(feature);
+                }
+
+                foreach (var feature in Features)
+                {
+                    feature.Initialize();
+                }
+            } catch (ReflectionTypeLoadException e) {
+                string message = "Error while attempting to load types in this assembly!!! The classes in the following error messages are the ones with issues:\n";
+                foreach (Exception ex in e.LoaderExceptions) {
+                    message += "\n" + ex.Message;
+                }
+                throw new Exception(message);
             }
         }
 
@@ -64,18 +69,18 @@ namespace FEZUG
             return null;
         }
 
-        public void Update(GameTime gameTime)
+        public override void Update(GameTime gameTime)
         {
-            InputHelper.Update(gameTime);
-
             foreach (var feature in Features)
             {
                 feature.Update(gameTime);
             }
         }
 
-        public void Draw(GameTime gameTime)
+        public override void Draw(GameTime gameTime)
         {
+            // update InputHelper from draw loop to avoid dealing with timescale jank.
+            InputHelper.Instance.Update(Timescaler.GetUnscaledGameTime(gameTime));
             DrawingTools.BeginBatch();
 
             foreach(var feature in Features)
@@ -87,9 +92,16 @@ namespace FEZUG
         }
     }
 
-    public class FezugInGameRendering
+    public class FezugInGameRendering : DrawableGameComponent
     {
-        public static void Draw(GameTime gameTime)
+        public FezugInGameRendering(Game game) : base(game)
+        {
+            Enabled = true;
+            Visible = true;
+            DrawOrder = 101;
+        }
+
+        public override void Draw(GameTime gameTime)
         {
             foreach (var feature in Fezug.Instance.Features)
             {

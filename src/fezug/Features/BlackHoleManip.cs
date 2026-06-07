@@ -1,19 +1,10 @@
-﻿using Common;
-using FezEngine.Services;
-using FezEngine.Structure;
+﻿using FezEngine.Structure;
 using FezEngine.Tools;
-using FezGame;
 using FezGame.Components;
 using FezGame.Services;
 using FEZUG.Features.Console;
-using Microsoft.Xna.Framework;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FEZUG.Features
 {
@@ -82,7 +73,7 @@ namespace FEZUG.Features
 
         private bool AreBlackHolesEnabled()
         {
-            var blackHole = LevelManager.Volumes.Values.Where((Volume x) => x.ActorSettings != null && x.ActorSettings.IsBlackHole);
+            var blackHole = LevelManager.Volumes.Values.Where(x => x.ActorSettings != null && x.ActorSettings.IsBlackHole);
             if (blackHole.Count() == 0) return false;
             return blackHole.First().Enabled;
         }

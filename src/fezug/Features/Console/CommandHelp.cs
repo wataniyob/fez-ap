@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FEZUG.Features.Console
+﻿namespace FEZUG.Features.Console
 {
     internal class CommandHelp : IFezugCommand
     {
@@ -50,7 +44,7 @@ namespace FEZUG.Features.Console
 
                 return true;
             }
-            else 
+            else
             {
                 var validCommands = cmdList.Where(cmd => cmd.Name.Equals(args[0], StringComparison.OrdinalIgnoreCase));
                 var validVariables = varList.Where(var => var.Name.Equals(args[0], StringComparison.OrdinalIgnoreCase));

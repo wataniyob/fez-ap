@@ -1,4 +1,4 @@
-
+﻿
 using FezEngine.Components;
 using FezEngine.Tools;
 using Microsoft.Xna.Framework;
@@ -28,7 +28,7 @@ namespace FEZUG.Helpers
                 DefaultFontSize = FontManager.BigFactor;
 
                 fillTexture = new Texture2D(GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
-                fillTexture.SetData(new[] { new Color(255, 255, 255) });
+                fillTexture.SetData(new Color[] {new(255, 255, 255)});
             });
         }
 
@@ -71,6 +71,24 @@ namespace FEZUG.Helpers
         {
             Batch.DrawString(DefaultFont, text, position, color,
                 rotation, origin, scale, SpriteEffects.None, 0f
+            );
+        }
+
+        public static void DrawLineSegment(Vector2 point1, Vector2 point2, Color color, int lineWidth)
+        {
+            float angle = (float)Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
+            float length = Vector2.Distance(point1, point2);
+
+            Batch.Draw(
+                fillTexture,
+                point1,
+                null,
+                color,
+                angle,
+                Vector2.Zero, // Origin of the texture, usually top-left for a line
+                new Vector2(length, lineWidth), // Scale X by length, Y by desired line thickness
+                SpriteEffects.None,
+                0f
             );
         }
 

@@ -1,12 +1,7 @@
 ﻿using FezEngine.Services;
 using FezEngine.Tools;
 using FEZUG.Features.Console;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FEZUG.Features
 {
@@ -37,7 +32,7 @@ namespace FEZUG.Features
                 if (args[0].Equals("speed") && args[1].Length == 0)
                 {
                     float curTime = TimeManager.TimeFactor / TimeManager.DefaultTimeFactor;
-                    return new List<string> { curTime.ToString("0.000", CultureInfo.InvariantCulture) , "real"};
+                    return new() {curTime.ToString("0.000", CultureInfo.InvariantCulture) , "real"};
                 }
             }
             return null;
@@ -53,8 +48,8 @@ namespace FEZUG.Features
 
             if(args[0] == "set")
             {
-                DateTime dateTime = DateTime.Now;
-                if(!DateTime.TryParseExact(args[1], "H:mm", null, DateTimeStyles.None, out dateTime)){
+                if (!DateTime.TryParseExact(args[1], "H:mm", null, DateTimeStyles.None, out DateTime dateTime))
+                {
                     switch (args[1])
                     {
                         case "real": dateTime = DateTime.Now; break;
@@ -68,7 +63,7 @@ namespace FEZUG.Features
                     }
                 }
                 TimeManager.CurrentTime = dateTime;
-                FezugConsole.Print($"Time has been set to {dateTime.ToString("H:mm")}.");
+                FezugConsole.Print($"Time has been set to {dateTime:H:mm}.");
             }
             else if(args[0] == "speed")
             {

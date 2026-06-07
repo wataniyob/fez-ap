@@ -1,77 +1,55 @@
-﻿using FezEngine;
-using FezEngine.Components;
-using FezEngine.Effects;
-using FezEngine.Services;
+﻿using FezEngine.Components;
 using FezEngine.Structure;
-using FezEngine.Structure.Geometry;
 using FezEngine.Tools;
 using FezGame.Components;
-using FezGame.Services;
-using FEZUG.Features.Console;
 using FEZUG.Helpers;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FEZUG.Features
 {
-    internal class SpinningCubeHitboxDraw : IFezugFeature
+    internal class SpinningCubeHitboxDraw : WireframeDraw
     {
+        public static SpinningCubeHitboxDraw Instance;
+
+        public SpinningCubeHitboxDraw() : base()
+        {
+            Instance = this;
+        }
 
         private Mesh TrileBoundingBox;
 
-        public static bool WireframesEnabled;
-
-        [ServiceDependency]
-        public IGameLevelManager LevelManager { private get; set; }
-
-        [ServiceDependency]
-        public IGameStateManager GameState { get; set; }
-
         Func<List<TrileInstance>> GetSpinningTreasures = null;
-        public void Initialize()
+
+        protected override Mesh[] RefreshBoundingBoxMeshs()
+        {
+            return new Mesh[] {TrileBoundingBox = CreateHitboxMesh(Color.Gold)};
+        }
+        protected override void PreInitialize()
         {
             System.Reflection.FieldInfo spinTreasureField = typeof(FezGame.Fez).Assembly.GetType("FezGame.Components.SpinningTreasuresHost").GetField("TrackedTreasures", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            Func<SpinningTreasuresHost> getSpinningTreasuresHost = () => (SpinningTreasuresHost)ServiceHelper.Game.Components.FirstOrDefault(c => typeof(SpinningTreasuresHost).Equals(c.GetType()));
-            Waiters.Wait(() => getSpinningTreasuresHost() != null, () =>
+            
+            Waiters.Wait(() => GetSpinningTreasureHostComponent() != null, () =>
             {
-                SpinningTreasuresHost spinningTreasureHost = getSpinningTreasuresHost();
+                SpinningTreasuresHost spinningTreasureHost = GetSpinningTreasureHostComponent();
                 GetSpinningTreasures = () => (List<TrileInstance>)spinTreasureField.GetValue(spinningTreasureHost);
-            });
-
-            DrawActionScheduler.Schedule(delegate
-            {
-                var effect = new DefaultEffect.LitVertexColored
-                {
-                    Specular = true,
-                    Emissive = 1.0f,
-                    AlphaIsEmissive = true
-                };
-
-                Color trileColor = Color.Gold;
-
-                TrileBoundingBox = new Mesh
-                {
-                    DepthWrites = false,
-                    Blending = BlendingMode.Alphablending,
-                    Culling = CullMode.CullClockwiseFace,
-                    Effect = effect
-                };
-
-                Color c = trileColor;
-                TrileBoundingBox.AddWireframeBox(Vector3.One, Vector3.Zero, new Color(c.R, c.G, c.B, 32), true);
-                TrileBoundingBox.AddColoredBox(Vector3.One, Vector3.Zero, new Color(c.R, c.G, c.B, 32), true);
-
             });
         }
 
-        public void Update(GameTime gameTime) { }
+        private static SpinningTreasuresHost GetSpinningTreasureHostComponent()
+        {
+            try
+            {
+                return (SpinningTreasuresHost)ServiceHelper.Game.Components.FirstOrDefault(c =>
+                    typeof(SpinningTreasuresHost).Equals(c.GetType()));
+            }
+            catch (InvalidOperationException)
+            {
+                // in rare cases where we run into race condition due to components being modified, just leave.
+                return null;
+            }
+        }
 
-        public void DrawLevel(GameTime gameTime)
+        public override void DrawLevel(GameTime gameTime)
         {
             if (!WireframesEnabled || GameState.Loading || LevelManager.Name == null) return;
 
@@ -87,43 +65,22 @@ namespace FEZUG.Features
             DrawingTools.GraphicsDevice.PrepareStencilWrite(StencilMask.None);
         }
 
-        public void DrawHUD(GameTime gameTime)
+        protected override void RefreshLevelList() { }
+
+
+
+
+        class CubeHitboxDrawToggleCommand : WireframesDrawToggleCommand
         {
-
-        }
-
-
-
-
-        class InvisibleTrilesDrawToggleCommand : IFezugCommand
-        {
-            public string Name => "cubehitboxes";
-
-            public string HelpText => "cubehitboxes [on/off] - draws wireframe for collectable cubes";
-
-            public List<string> Autocomplete(string[] args)
+            protected override string WhatFor => "cubehitboxes";
+            protected override string HelpWhatFor => "collectable cubes";
+            protected override string ExecuteWhatFor => "cube hitbox wireframes";
+            public override bool WireframesEnabled
             {
-                return new string[] { "on", "off" }.Where(s => s.StartsWith(args[0])).ToList();
+                get => Instance.WireframesEnabled;
+                set => Instance.WireframesEnabled = value;
             }
-
-            public bool Execute(string[] args)
-            {
-                if (args.Length != 1)
-                {
-                    FezugConsole.Print($"Incorrect number of parameters: '{args.Length}'", FezugConsole.OutputType.Warning);
-                    return false;
-                }
-
-                if(args[0] != "on" && args[0] != "off")
-                {
-                    FezugConsole.Print($"Invalid argument: '{args[0]}'", FezugConsole.OutputType.Warning);
-                    return false;
-                }
-
-                WireframesEnabled = args[0] == "on";
-                FezugConsole.Print($"cube hitbox wireframes have been {(WireframesEnabled ? "enabled" : "disabled")}.");
-                return true;
-            }
+            public override Mesh[] BoundingBoxes => Instance.BoundingBoxes;
         }
     }
 }

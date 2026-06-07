@@ -1,30 +1,41 @@
-using FezEngine.Services;
-using FezEngine.Tools;
+﻿﻿using FEZUG.Features;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FEZUG.Helpers
 {
-    internal static class InputHelper
+    internal class InputHelper
     {
-        private static Dictionary<Keys, double> KeyboardRepeatHeldTimers = new Dictionary<Keys, double>();
-        private static List<Keys> KeyboardRepeatedPresses = new List<Keys>();
+        private readonly Dictionary<Keys, double> KeyboardRepeatHeldTimers = new();
+        private readonly List<Keys> KeyboardRepeatedPresses = new();
 
-        public static KeyboardState CurrentKeyboardState { get; private set; }
-        public static KeyboardState PreviousKeyboardState { get; private set; }
+        public KeyboardState CurrentKeyboardState { get; private set; }
+        public KeyboardState PreviousKeyboardState { get; private set; }
+        public GamePadState CurrentGamePadState { get; private set; }
+        public GamePadState PreviousGamePadState { get; private set; }
 
-        public static double KeyboardRepeatDelay { get; set; } = 0.4;
-        public static double KeyboardRepeatSpeed { get; set; } = 0.03;
+        public double KeyboardRepeatDelay { get; set; } = 0.4;
+        public double KeyboardRepeatSpeed { get; set; } = 0.03;
 
-        public static void Update(GameTime gameTime)
+        public static InputHelper Instance = new();
+
+        private InputHelper() { }
+
+        /// <summary>
+        /// Updates the input states of this <see cref="InputHelper"/>
+        /// </summary>
+        /// <remarks>
+        /// Important Note: This method should be called only once per game tick.
+        /// It is currently called at the beginning of <see cref="Fezug.Draw(GameTime)"/>
+        /// Failure to do so may result in <see cref="IFezugFeature"/>s being unable to properly detect button presses
+        /// </remarks>
+        /// <param name="gameTime"></param>
+        public void Update(GameTime gameTime)
         {
             PreviousKeyboardState = CurrentKeyboardState;
             CurrentKeyboardState = Keyboard.GetState();
+            PreviousGamePadState = CurrentGamePadState;
+            CurrentGamePadState = GamePad.GetState(BindingSystem.Instance.InputManager.ActiveGamepad.PlayerIndex, GamePadDeadZone.IndependentAxes);
 
 
             KeyboardRepeatedPresses.Clear();
@@ -44,24 +55,62 @@ namespace FEZUG.Helpers
             }
         }
 
-        public static bool IsKeyPressed(Keys key)
+        public  bool IsButtonPressed(Buttons button)
+        {
+            return PreviousGamePadState.IsButtonUp(button) && CurrentGamePadState.IsButtonDown(button);
+        }
+
+        public IEnumerable<Buttons> GetDownButtons()
+        {
+            return Enum.GetValues(typeof(Buttons)).Cast<Buttons>().Where(CurrentGamePadState.IsButtonDown);
+        }
+
+        public  bool IsKeyPressed(Keys key)
         {
             return PreviousKeyboardState.IsKeyUp(key) && CurrentKeyboardState.IsKeyDown(key);
         }
 
-        public static bool IsKeyHeld(Keys key)
+        public bool IsKeyHeld(Keys key)
         {
             return CurrentKeyboardState.IsKeyDown(key);
         }
 
-        public static bool IsKeyReleased(Keys key)
+        public bool IsKeyReleased(Keys key)
         {
             return PreviousKeyboardState.IsKeyDown(key) && CurrentKeyboardState.IsKeyUp(key);
         }
 
-        public static bool IsKeyTyped(Keys key)
+        public bool IsKeyTyped(Keys key)
         {
             return IsKeyPressed(key) || KeyboardRepeatedPresses.Contains(key);
+        }
+
+
+        [Flags]
+        public enum KeyModifierState
+        {
+            None = 0,
+            Shift = 1,
+            Alt = 2,
+            Control = 4,
+            Ctrl = 4,
+        }
+        public KeyModifierState GetKeyModifierState()
+        {
+            KeyModifierState state = 0;
+            if (IsKeyHeld(Keys.LeftShift) || IsKeyHeld(Keys.RightShift))
+            {
+                state |= KeyModifierState.Shift;
+            }
+            if (IsKeyHeld(Keys.LeftControl) || IsKeyHeld(Keys.RightControl))
+            {
+                state |= KeyModifierState.Control;
+            }
+            if (IsKeyHeld(Keys.LeftAlt) || IsKeyHeld(Keys.RightAlt))
+            {
+                state |= KeyModifierState.Alt;
+            }
+            return state;
         }
     }
 }

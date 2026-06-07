@@ -1,34 +1,17 @@
-﻿using FEZAP;
-using FEZAP.Archipelago;
+﻿using FezEngine.Components;
 using FezEngine.Services;
 using FezEngine.Tools;
 using FezGame.Services;
 using FEZUG.Features.Console;
 using FEZUG.Helpers;
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FEZUG.Features.Hud
 {
-    public readonly struct HudLine(string text, Color color)
-    {
-        public readonly string text = text;
-        public readonly Color color = color;
-    };
-
     public class TextHud : IFezugFeature
     {
-        private struct HudVar
-        {
-            public FezugVariable var;
-            public Func<string> provider;
-        }
-        private List<HudVar> hudVars = new List<HudVar>();
+        private readonly List<HudVariable> hudVars = new();
 
         private FezugVariable hud_hide;
 
@@ -39,6 +22,8 @@ namespace FEZUG.Features.Hud
 
         [ServiceDependency]
         public IPlayerManager PlayerManager { private get; set; }
+        [ServiceDependency]
+        public IInputManager InputManager { private get; set; }
 
         [ServiceDependency]
         public IGameLevelManager LevelManager { private get; set; }
@@ -53,15 +38,18 @@ namespace FEZUG.Features.Hud
         {
             void CreateHudVariable(string name, string desc, Func<string> provider)
             {
-                var newHudVar = new HudVar();
-                newHudVar.var = new FezugVariable(name, $"If set, enables {desc} text hud.", "0")
+                hudVars.Add(new HudVariable(new FezugVariable(name, $"If set, enables {desc} text hud.", "0")
                 {
                     SaveOnChange = true,
                     Min = 0,
                     Max = 1
-                };
-                newHudVar.provider = provider;
-                hudVars.Add(newHudVar);
+                }, provider));
+            }
+            string FormatVector2(Vector2 vector3)
+            {
+                string posX = vector3.X.ToString("0.000", CultureInfo.InvariantCulture);
+                string posY = vector3.Y.ToString("0.000", CultureInfo.InvariantCulture);
+                return $"(X:{posX} Y:{posY})";
             }
             string FormatVector3(Vector3 vector3)
             {
@@ -71,12 +59,18 @@ namespace FEZUG.Features.Hud
                 return $"(X:{posX} Y:{posY} Z:{posZ})";
             }
 
+            CreateHudVariable("hud_fps", "frames per second", () => $"FPS: {_fps}");
+            CreateHudVariable("hud_ups", "updates per second", () => $"UPS: {_ups}");
             CreateHudVariable("hud_level", "level", () => $"Level: {LevelManager.Name}");
             CreateHudVariable("hud_position", "Gomez's position", () => $"Position: {FormatVector3(PlayerManager.Position)}");
             CreateHudVariable("hud_velocity", "Gomez's velocity", () => $"Velocity: {FormatVector3(PlayerManager.Velocity)}");
+            CreateHudVariable("hud_movement", "Input movement vector (left stick)", () => $"Movement: {FormatVector2(InputManager.Movement)}");
+            CreateHudVariable("hud_freelook", "Input freelook vector (right stick)", () => $"Freelook: {FormatVector2(InputManager.FreeLook)}");
             CreateHudVariable("hud_state", "Gomez's state", () => $"State: {PlayerManager.Action}");
             CreateHudVariable("hud_viewpoint", "camera viewpoint", () => $"Viewpoint: {CameraManager.Viewpoint}");
-            CreateHudVariable("hud_daytime", "Time of day", () => $"Time of day: {TimeManager.CurrentTime.TimeOfDay.ToString(@"hh':'mm':'ss")}");
+            CreateHudVariable("hud_daytime", "Time of day", () => $"Time of day: {TimeManager.CurrentTime.TimeOfDay:hh':'mm':'ss}");
+            CreateHudVariable("hud_inputs", "Input viewer", () => $"Inputs: {GetCurrentButtonInputsAsString()}");
+            CreateHudVariable("hud_key_names", "", () => $"Pressed keys: {string.Join(", ", InputHelper.Instance.CurrentKeyboardState.GetPressedKeys().Select(BindingSystem.GetButtonText).Concat(InputHelper.Instance.GetDownButtons().Select(BindingSystem.GetButtonText)))}");
 
             hud_hide = new FezugVariable("hud_hide", "If set, hides FEZUG HUD entirely when console is not opened.", "0")
             {
@@ -88,15 +82,63 @@ namespace FEZUG.Features.Hud
             Positioner = new HudPositioner("text", "global text", 0.0f, 0.0f);
         }
 
+        private string GetCurrentButtonInputsAsString()
+        {
+            string s = "";
+            //Note: ExactUp is used for doors and whatnot
+            s += InputManager.Up != 0 || InputManager.ExactUp != 0 ? "u " : "  ";
+            s += InputManager.Down != 0 ? "d " : "  ";
+            s += InputManager.Left != 0 ? "l " : "  ";
+            s += InputManager.Right != 0 ? "r " : "  ";
+
+            s += InputManager.Jump != 0 ? "a " : "  ";
+            s += InputManager.GrabThrow != 0 ? "x " : "  ";
+            s += InputManager.CancelTalk != 0 ? "b " : "  ";
+            s += InputManager.OpenInventory != 0 ? "y " : "  ";
+
+            s += InputManager.RotateLeft != 0 ? "lt " : "   ";
+            s += InputManager.RotateRight != 0 ? "rt " : "   ";
+
+            s += InputManager.MapZoomIn != 0 ? "rb " : "   ";
+            s += InputManager.MapZoomOut != 0 ? "lb " : "   ";
+
+            s += InputManager.Back != 0 ? "m " : "  ";
+            s += InputManager.Start != 0 ? "s " : "  ";
+            s += InputManager.ClampLook != 0 ? "rs " : "   ";
+            s += InputManager.FpsToggle != 0 ? "ls " : "   ";
+
+            return s;
+        }
+
+        private void DrawText(string text, Vector2 pos)
+        {
+            DrawingTools.DrawText(text, pos, Color.White);
+        }
+
+        private ulong _updatesDone = 0, _framesRendered = 0, _ups = 0, _fps = 0;
+        private DateTime _lastTime = DateTime.Now;
+
         public void Update(GameTime gameTime)
         {
-
+            _updatesDone++;
         }
 
         public void DrawLevel(GameTime gameTime) { }
 
         public void DrawHUD(GameTime gameTime)
         {
+            _framesRendered++;
+            if ((DateTime.Now - _lastTime).TotalSeconds >= 1)
+            {
+                // one second has elapsed
+
+                _fps = _framesRendered;
+                _framesRendered = 0;
+                _ups = _updatesDone;
+                _updatesDone = 0;
+                _lastTime = DateTime.Now;
+            }
+
             if(hud_hide.ValueBool)
             {
                 var console = Fezug.GetFeature<FezugConsole>();
@@ -104,24 +146,20 @@ namespace FEZUG.Features.Hud
             }
 
 
-            var linesToDraw = new List<HudLine>()
+            var linesToDraw = new List<string>()
             {
-                new($"FEZAP {Fezap.Version}", Color.White),
+                $"FEZUG {Fezug.Version}"
             };
-
-            string connectionText = ArchipelagoManager.IsConnected() ? "Connected" : "Disconnected";
-            Color connectionColor = ArchipelagoManager.IsConnected() ? Color.Green : Color.Red;
-            linesToDraw.Add(new(connectionText, connectionColor));
 
             foreach (var hudVar in hudVars)
             {
                 if(hudVar.var.ValueBool)
                 {
-                    linesToDraw.Add(new(hudVar.provider(), Color.White));
+                    linesToDraw.Add(hudVar.provider());
                 }
             }
 
-            float maxWidth = linesToDraw.Select(line => DrawingTools.DefaultFont.MeasureString(line.text).X * 2).Max();
+            float maxWidth = linesToDraw.Select(str => DrawingTools.DefaultFont.MeasureString(str).X * 2).Max();
             if(maxWidth > lastWidth || (gameTime.TotalGameTime - lastWidthUpdateTime).TotalSeconds > 5.0f)
             {
                 lastWidthUpdateTime = gameTime.TotalGameTime;
@@ -140,10 +178,22 @@ namespace FEZUG.Features.Hud
             for (int i = 0; i < linesToDraw.Count; i++)
             {
                 var line = linesToDraw[i];
-                DrawingTools.DrawText(line.text, position + new Vector2(padX, i * 30.0f), line.color);
-                if (i == 0) DrawingTools.DrawText(line.text, position + new Vector2(padX, (i*30.0f)-1.0f), line.color);
+                DrawText(line, position + new Vector2(padX, i * 30.0f));
+                if (i == 0) DrawText(line, position + new Vector2(padX, (i*30.0f)-1.0f));
             }
 
+        }
+
+        internal class HudVariable
+        {
+            internal FezugVariable var;
+            internal Func<string> provider;
+
+            internal HudVariable(FezugVariable var, Func<string> provider)
+            {
+                this.var = var;
+                this.provider = provider;
+            }
         }
     }
 }

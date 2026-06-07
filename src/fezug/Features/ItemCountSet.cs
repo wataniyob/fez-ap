@@ -1,11 +1,6 @@
 ﻿using FezEngine.Tools;
 using FezGame.Services;
 using FEZUG.Features.Console;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FEZUG.Features
 {
@@ -28,8 +23,8 @@ namespace FEZUG.Features
                 return false;
             }
 
-            Int32.TryParse(args[1], out var amount);
-            string itemName = "";
+            int.TryParse(args[1], out var amount);
+            string itemName;
 
             switch (args[0])
             {
@@ -91,7 +86,7 @@ namespace FEZUG.Features
                     case "owls":
                         value = GameState.SaveData.CollectedOwls; break;
                 }
-                return new List<string>() { value.ToString() };
+                return new() {value.ToString()};
             }
             return null;
         }

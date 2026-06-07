@@ -1,20 +1,7 @@
-﻿using Common;
-using FezEngine.Components;
-using FezEngine.Services;
-using FezEngine.Services.Scripting;
+﻿using FezEngine.Services;
 using FezEngine.Tools;
-using FezGame;
-using FezGame.Services;
-using FezGame.Structure;
 using FEZUG.Features.Console;
-using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FEZUG.Features
 {
@@ -64,7 +51,7 @@ namespace FEZUG.Features
         {
             if (args.Length == 0 || args[args.Length - 1].Length > 0) return null;
 
-            return [CameraManager.PixelsPerTrixel.ToString("0.000", CultureInfo.InvariantCulture)];
+            return new() {CameraManager.PixelsPerTrixel.ToString("0.000", CultureInfo.InvariantCulture)};
 		}
     }
 }

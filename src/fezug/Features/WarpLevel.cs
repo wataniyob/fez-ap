@@ -1,19 +1,13 @@
-﻿using Common;
-using FezEngine.Components;
+﻿using FezEngine.Components;
 using FezEngine.Services;
-using FezEngine.Services.Scripting;
+using FezEngine.Structure;
 using FezEngine.Tools;
 using FezGame;
 using FezGame.Services;
 using FezGame.Structure;
 using FEZUG.Features.Console;
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FEZUG.Features
 {
@@ -72,7 +66,7 @@ namespace FEZUG.Features
 			if(args.Length == 0)
             {
 				FezugConsole.Print("List of available levels:");
-				FezugConsole.Print(String.Join(", ", LevelList));
+				FezugConsole.Print(string.Join(", ", LevelList));
 				return true;
 			}
 
@@ -95,8 +89,34 @@ namespace FEZUG.Features
         {
 			/* pre-warp safety measures */
 
-			// make sure no stuff from previous save remains after switching the save.
-			List<IWaiter> waitersToCancel = ServiceHelper.Game.Components.Where(comp => comp is IWaiter).Select(comp => comp as IWaiter).ToList();
+			// force menu cube closed
+			{
+				GameState.SkipRendering = false;
+				LevelManager.SkipInvalidation = false;
+				GameState.SkyOpacity = 1f;
+				var matches = ServiceHelper.Game.Components.Where(c => c.GetType().Name == "MenuCube");
+				if (matches.Any())
+				{
+					var menuCube = matches.First();
+					IEnumerable<ArtObjectInstance> ArtifactAOs = (IEnumerable<ArtObjectInstance>)
+							typeof(Fez).Assembly.GetType("FezGame.Components.MenuCube")
+							.GetField("ArtifactAOs", BindingFlags.Instance | BindingFlags.NonPublic)
+							.GetValue(menuCube);
+
+					foreach (ArtObjectInstance artifactAO in ArtifactAOs)
+					{
+						artifactAO.SoftDispose();
+						LevelManager.ArtObjects.Remove(artifactAO.Id);
+					}
+					ServiceHelper.Get<FezEngine.Services.Scripting.IGameService>().CloseScroll(null);
+					GameState.InMenuCube = false;
+					GameState.DisallowRotation = false;
+					ServiceHelper.RemoveComponent(menuCube);
+				}
+			}
+
+            // make sure no stuff from previous save remains after switching the save.
+            List<IWaiter> waitersToCancel = ServiceHelper.Game.Components.Where(comp => comp is IWaiter).Select(comp => comp as IWaiter).ToList();
 			foreach (IWaiter waiter in waitersToCancel)
 			{
 				waiter.Cancel();
@@ -116,7 +136,7 @@ namespace FEZUG.Features
 					var TrackedCollectsField = SplitUpCubeHostType.GetField("TrackedCollects", BindingFlags.NonPublic | BindingFlags.Instance);
 					var TrackedCollects = TrackedCollectsField.GetValue(SplitUpCubeHost);
 					MethodInfo TrackedCollectsClear = TrackedCollects.GetType().GetMethod("Clear");
-					TrackedCollectsClear.Invoke(TrackedCollects, new object[] { });
+					TrackedCollectsClear.Invoke(TrackedCollects, new object[] {});
 				}
 			}
 
@@ -150,8 +170,19 @@ namespace FEZUG.Features
 
 			// level change logic
 			GameState.Loading = true;
-			LevelManager.ChangeLevel(levelName);
-			CameraManager.Center = PlayerManager.Position + Vector3.Up * PlayerManager.Size.Y / 2f + Vector3.UnitY;
+            // setting PlayerManager.Action to WakingUp fixes an infinite loop when menu cube is open
+            var lastAction = PlayerManager.Action;
+			PlayerManager.Action = ActionType.WakingUp;
+            LevelManager.ChangeLevel(levelName);
+            PlayerManager.Action = lastAction;
+            if (!LevelManager.Scripts.Any(kv =>
+            {
+                var s = kv.Value;
+                return !s.OneTime && s.Actions.Any(a => a.Object.Type == "Volume" && a.Operation == "FocusCamera");
+            }))
+            {
+                CameraManager.Center = PlayerManager.Position + Vector3.Up * PlayerManager.Size.Y / 2f + Vector3.UnitY;
+            }
 			CameraManager.SnapInterpolation();
 			LevelMaterializer.CullInstances();
 			GameState.ScheduleLoadEnd = true;
