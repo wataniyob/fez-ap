@@ -270,7 +270,7 @@ namespace FEZAP.Archipelago
             }
 
             // Remove lightning flashes and make invisible triles visible
-            InvisibleTrilesDraw.WireframesEnabled = LevelManager.Rainy;
+            InvisibleTrilesDraw.Instance.WireframesEnabled = LevelManager.Rainy;
             if (LevelManager.Rainy)
             {
                 LevelManager.Rainy = false;

@@ -12,8 +12,7 @@
   <Target Name="PrepareMod" AfterTargets="Build">
     <PropertyGroup>
       <!-- Replace with your fez Mod directory path -->
-      <FezModDirectory>D:\Games\Steam\steamapps\common\FEZ\Mods\</FezModDirectory>
-      <!-- <FezModDirectory>/home/<user>/.steam/steam/steamapps/common/FEZ/Mods/</FezModDirectory> -->
+      <FezModDirectory>C:\Program Files (x86)\Steam\steamapps\common\FEZ\Mods\</FezModDirectory>
     </PropertyGroup>
     <ItemGroup>
         <ModdedAssets Include="$(ProjectDir)\Assets\**\*.*" />
@@ -77,5 +76,9 @@
       <HintPath>$(ProjectDir)\dependencies\MonoMod.Utils.dll</HintPath>
       <Private>False</Private>
     </Reference>
+	<Reference Include="Mono.Cecil">
+      <HintPath>$(ProjectDir)\dependencies\Mono.Cecil.dll</HintPath>
+	  <Private>False</Private>
+	</Reference>
   </ItemGroup>
 </Project>
