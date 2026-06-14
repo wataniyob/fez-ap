@@ -2,4 +2,6 @@
 bin/
 obj/
 release/
+out/
 /.idea
+/UserProperties.xml

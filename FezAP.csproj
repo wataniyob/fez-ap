@@ -12,7 +12,7 @@
   <Import Project="$(ProjectDir)UserProperties.xml" />
 
   <Target Name="VerifyModReferences" BeforeTargets="Build">
-    <Error Text="You forgot to edit UserProperties.xml." Condition="$(UserPropertiesNotSetUp) == True" />
+    <Error Text="You forgot to edit/copy UserProperties.xml." Condition="$(UserPropertiesSetUp) != True" />
   </Target>
 
   <Target Name="PrepareMod" AfterTargets="Build">

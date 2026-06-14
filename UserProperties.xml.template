@@ -1,7 +1,6 @@
 <Project>
   <PropertyGroup>
-    <!--Remove this property-->
-    <UserPropertiesNotSetUp>True</UserPropertiesNotSetUp>
+    <UserPropertiesSetUp>True</UserPropertiesSetUp>
     <!--Insert path to FEZ game directory here-->
     <FezDir></FezDir>
     <!--Insert path to where MonoMod is here-->
