@@ -26,6 +26,8 @@
 
     <Copy SourceFiles="$(TargetDir)$(TargetName).dll;$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ModCompileOutputDir)" Retries="0" />
     <Copy SourceFiles="$(ProjectDir)Metadata.xml" DestinationFolder="$(ModCompileOutputDir)" Retries="0" />
+    <Copy SourceFiles="$(ProjectDir)LICENSE" DestinationFolder="$(ModCompileOutputDir)" Retries="0" />
+    <Copy SourceFiles="$(ProjectDir)README.md" DestinationFolder="$(ModCompileOutputDir)" Retries="0" />
     <Copy SourceFiles="@(ModdedAssets)" DestinationFolder="$(ModCompileOutputDir)Assets\%(RecursiveDir)" Retries="0" />
     <Copy SourceFiles="$(PkgArchipelago_MultiClient_Net)\lib\net45\Archipelago.MultiClient.Net.dll" DestinationFolder="$(ModCompileOutputDir)" Retries="0" />
     <Copy SourceFiles="$(PkgArchipelago_MultiClient_Net)\lib\net45\Newtonsoft.Json.dll" DestinationFolder="$(ModCompileOutputDir)" Retries="0" />
