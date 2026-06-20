@@ -51,11 +51,11 @@ The remaining space in the item pool is filled with traps and filler with a rati
 - You need clone this repo and have dotnet installed and configured.
 - You need to find the folder where you have Fez installed.
 - You need to have [HAT](https://github.com/FEZModding/HAT) installed and confirmed to work.
-- Go into `FezAP.csproj` and update `FezModDirectory` with the path to your `Mods/` directory in the Fez install folder.
-- Get a copy of `Archipelago.MultiClient.Net.dll` and `Newtonsoft.Json.dll` from their respective nugets or repositories.
-- Copy over all the files from `dependencies/.gitignore` from your Fez installation, `HATDependencies/` and the previous step.
+- Copy `UserProperties.xml.template` into `UserProperties.xml`
+  - Configure `FezDir` to point to your FEZ installation with HAT installed, e.g. `C:\Games\FEZ` or `/home/user/Games/FEZ`
+  - If necessary, configure `MonoModDir` and  `ModOutputDir` properties if they're not as expected (they should be as expected)
 - Run `dotnet build` from the root directory to build the mod and copy over all the files into your mod directory.
-- Run `MONOMODDED_FEZ.exe` to confirm that HAT sees the mod and just test that things seem to work.
+- Run `HAT.exe` to confirm that HAT sees the mod and just test that things seem to work.
 - For apworld development, modify the files in `Archipelago/worlds/fez`.
 
 ## Thanks

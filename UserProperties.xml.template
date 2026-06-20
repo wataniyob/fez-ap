@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <UserPropertiesSetUp>True</UserPropertiesSetUp>
+    <!--Insert path to FEZ game directory here-->
+    <FezDir></FezDir>
+    <!--Insert path to where MonoMod is here-->
+    <MonoModDir>$(FezDir)\HATDependencies\MonoMod</MonoModDir>
+    <!--Insert path to where your mod should build to (it will build to "out" directory by default)-->
+    <ModOutputDir>$(FezDir)\Mods\fezap</ModOutputDir>
+  </PropertyGroup>
+</Project>

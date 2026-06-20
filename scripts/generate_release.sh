@@ -1,39 +1,42 @@
-dotnet build --configuration Release
+#!/usr/bin/env bash
 
-mkdir release
+# !!! BEFORE INVOKING THIS SCRIPT !!!
+# Make sure you've created a python venv in the Archipelago directory, have activated it, and used it to install all of
+# the necessary archipelago dependencies.
+#
+# It might be different on different platforms but it should look something like:
+#
+#   cd Archipelago
+#   python3.13 -m venv .venv
+#   source .venv/bin/activate
+#   python ModuleUpdate.py
+#
+# The in future terminal sessions, remember to reactivate the venv:
+#
+#   source Archipelago/.venv/bin/activate
+
+set -xeu
+
+# Move to repository directory
+cd "`dirname "$0"`/.."
+
+rm -rf release
+mkdir -p release/fezap
+
+dotnet build --configuration Release -p:ModOutputDir=./release/fezap
 
 # Generate FezAP.zip
-mkdir release/fezap
-cp LICENSE release/fezap/LICENSE
-cp README.md release/fezap/README.md
-cp Metadata.xml release/fezap/Metadata.xml
-cp bin/Release/FezAP.dll release/fezap/FezAP.dll
-cp -r Assets release/fezap/Assets
-cp dependencies/Archipelago.MultiClient.Net.dll release/fezap/Archipelago.MultiClient.Net.dll
-cp dependencies/Newtonsoft.Json.dll release/fezap/Newtonsoft.Json.dll
-# TODO: Confirm this zips it such that it's zipping the files into the zip not the folder
-zip -r release/FezAP.zip release/fezap
+cd release/fezap
+zip -r ../FezAP.zip .
+cd -
 rm -rf release/fezap
 
-# Generate fez.apworld
-# TODO: Swap with using the Generate Apworlds after rebasing the AP repo
-# py Launcher.py "Build APWorlds" -- "Fez"
-rm -rf Archipelago/worlds/fez/__pycache__
-cp -r Archipelago/worlds/fez release/fez
-zip -r release/fez.zip release/fez
-mv release/fez.zip release/fez.apworld
-rm -rf release/fez
-
-# Copy YAML template
+# Generate fez.apworld and Fez.yaml
 cd Archipelago
-py -c '
-from Options import generate_yaml_templates
-import Utils
-
-target = Utils.user_path("Players", "Templates")
-generate_yaml_templates(target, False)
-'
+python3 Launcher.py "Build APWorlds" -- Fez --skip_open_folder
+python3 Launcher.py "Generate Template Options" -- --skip_open_folder
 cd -
+cp Archipelago/build/apworlds/fez.apworld release/fez.apworld
 cp Archipelago/Players/Templates/Fez.yaml release/Fez.yaml
 
 echo "Make sure Fezap.cs and Metadata.xml have the correct version, tag your commit and double check your zips before uploading them."
