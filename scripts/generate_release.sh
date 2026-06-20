@@ -33,8 +33,8 @@ rm -rf release/fezap
 
 # Generate fez.apworld and Fez.yaml
 cd Archipelago
-python3 Launcher.py "Build APWorlds" -- Fez
-python3 Launcher.py "Generate Template Options"
+python3 Launcher.py "Build APWorlds" -- Fez --skip_open_folder
+python3 Launcher.py "Generate Template Options" -- --skip_open_folder
 cd -
 cp Archipelago/build/apworlds/fez.apworld release/fez.apworld
 cp Archipelago/Players/Templates/Fez.yaml release/Fez.yaml
