@@ -16,6 +16,7 @@
   </Target>
 
   <Target Name="PrepareMod" AfterTargets="Build">
+    <MakeDir Condition="Exists('$(ModOutputDir)\..')" Directories="$(ModOutputDir)" />
     <PropertyGroup>
       <ModCompileOutputDir Condition="Exists($(ModOutputDir))">$(ModOutputDir)\</ModCompileOutputDir>
       <ModCompileOutputDir Condition="!Exists($(ModOutputDir))">$(ProjectDir)out\</ModCompileOutputDir>
