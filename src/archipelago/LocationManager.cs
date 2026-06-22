@@ -67,6 +67,9 @@ namespace FEZAP.Archipelago
                     case LocationType.AchievementCode:
                         GameState.SaveData.AchievementCheatCodeDone = true;
                         break;
+                    case LocationType.QrMapCode:
+                        GameState.SaveData.MapCheatCodeDone = true;
+                        break;
                 }
             }
         }
@@ -96,6 +99,7 @@ namespace FEZAP.Archipelago
                 LocationType.InactiveArtObjects => levelData.InactiveArtObjects.Contains(location.index),
                 LocationType.InactiveNPCs => levelData.InactiveNPCs.Contains(location.index),
                 LocationType.AchievementCode => GameState.SaveData.AchievementCheatCodeDone,
+                LocationType.QrMapCode => GameState.SaveData.MapCheatCodeDone,
                 _ => false,
             };
         }

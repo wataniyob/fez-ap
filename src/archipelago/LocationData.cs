@@ -8,6 +8,7 @@ namespace FEZAP.Archipelago
         InactiveArtObjects,  // chests, clock anti-cubes
         InactiveNPCs,  // owls
         AchievementCode,  // for achievement code andit-cube
+        QrMapCode,  // for QR map code anti-cube
     }
 
     /// Location information container
@@ -190,7 +191,6 @@ namespace FEZAP.Archipelago
             new("Tree Cabin Floor Anti-Cube", "TREE", LocationType.DestroyedTriles, [44, 60, 4]),
             new("Tree Sky Floor Anti-Cube", "TREE_SKY", LocationType.DestroyedTriles, [18, 50, 19]),
             new("Bell Tower Anti-Cube", "BELL_TOWER", LocationType.DestroyedTriles, [17, 44, 19]),
-            new("Watertower Secret Anti-Cube", "WATERTOWER_SECRET", LocationType.DestroyedTriles, [9, 16, 12]),
             new("Telescope Anti-Cube", "TELESCOPE", LocationType.DestroyedTriles, [18, 36, 20]),
             new("Zu Unfold Anti-Cube", "ZU_UNFOLD", LocationType.DestroyedTriles, [9, 59, 12]),
             new("Code Machine Anti-Cube", "CODE_MACHINE", LocationType.DestroyedTriles, [35, 40, 10]),
@@ -219,6 +219,10 @@ namespace FEZAP.Archipelago
             new("Throne Anti-Cube", "SEWER_QR", LocationType.DestroyedTriles, [15, 41, 14]),
             new("Throne Anti-Cube", "ZU_HOUSE_EMPTY", LocationType.DestroyedTriles, [9, 6, 5]),
             new("Throne Anti-Cube", "ZU_THRONE_RUINS", LocationType.DestroyedTriles, [9, 5, 5]),
+
+            // Watertower Secret cube accessible in 2 locations
+            new("Watertower Secret Anti-Cube", "WATERTOWER_SECRET", LocationType.DestroyedTriles, [9, 16, 12]),
+            new("Watertower Secret Anti-Cube", "GOMEZ_HOUSE", LocationType.QrMapCode),
 
             // Use InactiveArtObjects since DestroyedTriles doesn't work for these since they're all [0, 0, 0]
             new("Clock Tower Minute Anti-Cube", "CLOCK", LocationType.InactiveArtObjects, index: 53),
