@@ -97,7 +97,7 @@ namespace FEZAP.Archipelago
                     {
                         GameState.SaveData.CollectedParts = 0;
                         GameState.SaveData.CubeShards += 1;
-                    } 
+                    }
                     break;
                 case "Owl":
                     GameState.SaveData.CollectedOwls += 1;
@@ -207,6 +207,8 @@ namespace FEZAP.Archipelago
 
         private void DoRotationTrap()
         {
+            if (LevelManager.Flat)
+                return;
             List<int> rotationOptions = [-2, -1, 1, 2];
             int index = RandomHelper.Random.Next(rotationOptions.Count);
             CameraService.Rotate(rotationOptions[index]);
