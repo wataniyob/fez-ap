@@ -25,6 +25,12 @@ namespace FEZAP.Archipelago
 
         public bool Execute(string[] args)
         {
+            if (ArchipelagoManager.IsConnected())
+            {
+                FezugConsole.Print("Already connected to a server.", FezugConsole.OutputType.Warning);
+                return false;
+            }
+
             if (args.Length != 3 && args.Length != 4)
             {
                 FezugConsole.Print("Incorrect number of arguments", FezugConsole.OutputType.Warning);
