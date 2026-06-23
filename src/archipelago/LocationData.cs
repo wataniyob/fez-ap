@@ -211,8 +211,9 @@ namespace FEZAP.Archipelago
             new("Zu Code Loop Anti-Cube", "ZU_CODE_LOOP", LocationType.DestroyedTriles, [5, 42, 5], count: 2),
             new("Zu Code Loop Anti-Cube", "ZU_CODE_LOOP", LocationType.DestroyedTriles, [5, 42, 3]),
 
-            // Parlor cube accessible in 2 locations
+            // Parlor cube accessible in 2 locations, as well as an alternate spawn location in Parlor
             new("Parlor Anti-Cube", "PARLOR", LocationType.DestroyedTriles, [18, 4, 5]),
+            new("Parlor Anti-Cube", "PARLOR", LocationType.DestroyedTriles, [11, 4, 5]), // Inside chest room
             new("Parlor Anti-Cube", "ZU_HOUSE_QR", LocationType.DestroyedTriles, [9, 6, 8]),
 
             // Throne cube accessible in 3 locations
