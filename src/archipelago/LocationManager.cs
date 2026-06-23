@@ -99,7 +99,7 @@ namespace FEZAP.Archipelago
                 LocationType.InactiveArtObjects => levelData.InactiveArtObjects.Contains(location.index),
                 LocationType.InactiveNPCs => levelData.InactiveNPCs.Contains(location.index),
                 LocationType.AchievementCode => GameState.SaveData.AchievementCheatCodeDone,
-                LocationType.QrMapCode => GameState.SaveData.MapCheatCodeDone,
+                LocationType.QrMapCode => GameState.SaveData.MapCheatCodeDone && !(GameState.SaveData.World.ContainsKey("WATERTOWER_SECRET") && GameState.SaveData.World["WATERTOWER_SECRET"].ScriptingState == "NOT_COLLECTED"),
                 _ => false,
             };
         }
