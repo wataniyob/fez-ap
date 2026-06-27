@@ -1,8 +1,8 @@
 using Archipelago.MultiClient.Net.Enums;
 using FezEngine.Services;
-using FezEngine.Structure;
 using FezEngine.Tools;
 using FezGame.Services;
+using FezGame.Structure;
 using FEZUG.Features.Console;
 
 namespace FEZAP.Archipelago
@@ -396,23 +396,17 @@ namespace FEZAP.Archipelago
 
         public bool Execute(string[] args)
         {
-            string level = LevelManager.Name;
+            LevelSaveData level = GameState.SaveData.World[LevelManager.Name];
 
-            List<TrileEmplacement> DestroyedTriles = GameState.SaveData.World[level].DestroyedTriles;
-            List<TrileEmplacement> InactiveTriles = GameState.SaveData.World[level].InactiveTriles;
-            List<int> InactiveArtObjects = GameState.SaveData.World[level].InactiveArtObjects;
-            List<int> InactiveEvents = GameState.SaveData.World[level].InactiveEvents;
-            List<int> InactiveGroups = GameState.SaveData.World[level].InactiveGroups;
-            List<int> InactiveVolumes = GameState.SaveData.World[level].InactiveVolumes;
-            List<int> InactiveNPCs = GameState.SaveData.World[level].InactiveNPCs;
-
-            DestroyedTriles.ForEach(x => FezugConsole.Print($"Destroyed Triles: {x.X}, {x.Y}, {x.Z}"));
-            InactiveTriles.ForEach(x => FezugConsole.Print($"Inactive Triles: {x.X}, {x.Y}, {x.Z}"));
-            InactiveArtObjects.ForEach(x => FezugConsole.Print($"Art Objects: {x}"));
-            InactiveEvents.ForEach(x => FezugConsole.Print($"Events: {x}"));
-            InactiveGroups.ForEach(x => FezugConsole.Print($"Groups: {x}"));
-            InactiveVolumes.ForEach(x => FezugConsole.Print($"Volumes: {x}"));
-            InactiveNPCs.ForEach(x => FezugConsole.Print($"NPCs: {x}"));
+            level.DestroyedTriles.ForEach(x => FezugConsole.Print($"Destroyed Trile: {x.X}, {x.Y}, {x.Z}"));
+            level.InactiveTriles.ForEach(x => FezugConsole.Print($"Inactive Trile: {x.X}, {x.Y}, {x.Z}"));
+            level.InactiveArtObjects.ForEach(x => FezugConsole.Print($"Inactive Art Object: {x}"));
+            level.InactiveEvents.ForEach(x => FezugConsole.Print($"Inactive Event: {x}"));
+            level.InactiveGroups.ForEach(x => FezugConsole.Print($"Inactive Group: {x}"));
+            level.InactiveVolumes.ForEach(x => FezugConsole.Print($"Inactive Volume: {x}"));
+            level.InactiveNPCs.ForEach(x => FezugConsole.Print($"Inactive NPC: {x}"));
+            if (level.ScriptingState != null)
+                FezugConsole.Print($"Scripting State: \"{level.ScriptingState}\"");
 
             return true;
         }
