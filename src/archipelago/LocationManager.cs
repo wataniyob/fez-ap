@@ -78,6 +78,10 @@ namespace FEZAP.Archipelago
                         levelData.InactiveArtObjects.Add(location.index);
                         levelData.ScriptingState = null;
                         break;
+                    case LocationType.InactiveArtObjectsAndDestroyedTriles:
+                        levelData.InactiveArtObjects.Add(location.index);
+                        levelData.DestroyedTriles.AddRange(Enumerable.Repeat(location.emplacement, location.count));
+                        break;
                 }
             }
         }
@@ -110,6 +114,7 @@ namespace FEZAP.Archipelago
                 LocationType.QrMapCode => GameState.SaveData.MapCheatCodeDone && !(GameState.SaveData.World.ContainsKey("WATERTOWER_SECRET") && GameState.SaveData.World["WATERTOWER_SECRET"].ScriptingState == "NOT_COLLECTED"),
                 LocationType.InactiveVolumesAndCollected => levelData.InactiveVolumes.Contains(location.index) && levelData.ScriptingState != location.notCollectedState,
                 LocationType.InactiveArtObjectsAndCollected => levelData.InactiveArtObjects.Contains(location.index) && levelData.ScriptingState != location.notCollectedState,
+                LocationType.InactiveArtObjectsAndDestroyedTriles => levelData.InactiveArtObjects.Contains(location.index) && IsDestroyedTrileCollected(location, levelData),
                 _ => false,
             };
         }

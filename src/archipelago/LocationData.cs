@@ -10,7 +10,8 @@ namespace FEZAP.Archipelago
         AchievementCode,  // for achievement code andit-cube
         QrMapCode,  // for QR map code anti-cube
         InactiveVolumesAndCollected, // code-activatable anti-cubes/heart pieces
-        InactiveArtObjectsAndCollected, // tune forks, block puzzles, black monolith
+        InactiveArtObjectsAndCollected, // black monolith
+        InactiveArtObjectsAndDestroyedTriles, // tuning forks, block puzzles, bell
     }
 
     /// Location information container
@@ -187,26 +188,26 @@ namespace FEZAP.Archipelago
             new("Achievement Anti-Cube", "GOMEZ_HOUSE", LocationType.AchievementCode),
 
             // DestroyedTriles
-            new("CMY Tune Fork Anti-Cube", "CMY_FORK", LocationType.DestroyedTriles, [7, 9, 5]),
-            new("Lava Tune Fork Anti-Cube", "LAVA_FORK", LocationType.DestroyedTriles, [16, 45, 16]),
-            new("Zu Tune Fork Anti-Cube", "ZU_FORK", LocationType.DestroyedTriles, [16, 18, 15]),
+            new("CMY Tune Fork Anti-Cube", "CMY_FORK", LocationType.InactiveArtObjectsAndDestroyedTriles, [7, 9, 5], index: 11),
+            new("Lava Tune Fork Anti-Cube", "LAVA_FORK", LocationType.InactiveArtObjectsAndDestroyedTriles, [16, 45, 16], index: 1),
+            new("Zu Tune Fork Anti-Cube", "ZU_FORK", LocationType.InactiveArtObjectsAndDestroyedTriles, [16, 18, 15], index: 29),
             new("Lighthouse Floor Anti-Cube", "LIGHTHOUSE", LocationType.InactiveVolumesAndCollected, index: 18),
             new("Tree Cabin Floor Anti-Cube", "TREE", LocationType.InactiveVolumesAndCollected, index: 14),
             new("Tree Sky Floor Anti-Cube", "TREE_SKY", LocationType.InactiveVolumesAndCollected, index: 6),
-            new("Bell Tower Anti-Cube", "BELL_TOWER", LocationType.DestroyedTriles, [17, 44, 19]),
+            new("Bell Tower Anti-Cube", "BELL_TOWER", LocationType.InactiveArtObjectsAndDestroyedTriles, [17, 44, 19], index: 0),
             new("Telescope Anti-Cube", "TELESCOPE", LocationType.InactiveVolumesAndCollected, index: 4, notCollectedState: "ANC"),
-            new("Zu Unfold Anti-Cube", "ZU_UNFOLD", LocationType.DestroyedTriles, [9, 59, 12]),
+            new("Zu Unfold Anti-Cube", "ZU_UNFOLD", LocationType.InactiveArtObjectsAndDestroyedTriles, [9, 59, 12], index: 0),
             new("Code Machine Anti-Cube", "CODE_MACHINE", LocationType.InactiveVolumesAndCollected, index: 2),
             new("Boileroom Anti-Cube", "BOILEROOM", LocationType.InactiveVolumesAndCollected, index: 0),
             new("Nu Zu School Anti-Cube", "NUZU_SCHOOL", LocationType.InactiveVolumesAndCollected, index: 0),
             new("Big Owl Anti-Cube", "BIG_OWL", LocationType.DestroyedTriles, [18, 29, 14]),
             new("CMY B Anti-Cube", "CMY_B", LocationType.DestroyedTriles, [14, 62, 11]),
-            new("Zu Tetris Anti-Cube", "ZU_TETRIS", LocationType.DestroyedTriles, [14, 20, 13]),
+            new("Zu Tetris Anti-Cube", "ZU_TETRIS", LocationType.InactiveArtObjectsAndDestroyedTriles, [14, 20, 13], index: 0),
             new("Lava Skull Anti-Cube", "LAVA_SKULL", LocationType.DestroyedTriles, [10, 30, 8]),
             new("Quantum Anti-Cube", "QUANTUM", LocationType.DestroyedTriles, [44, 83, 38]),
             new("Skull B Anti-Cube", "SKULL_B", LocationType.DestroyedTriles, [20, 21, 19]),
             new("Zu Heads Anti-Cube", "ZU_HEADS", LocationType.DestroyedTriles, [9, 68, 9]),
-            new("Sewer Tune Fork Anti-Cube", "SEWER_FORK", LocationType.DestroyedTriles, [11, 41, 14]),
+            new("Sewer Tune Fork Anti-Cube", "SEWER_FORK", LocationType.InactiveArtObjectsAndDestroyedTriles, [11, 41, 14], index: 1),
             new("Zu Bridge Floor Anti-Cube", "ZU_BRIDGE", LocationType.InactiveVolumesAndCollected, index: 2),
             new("Zu Code Loop Anti-Cube", "ZU_CODE_LOOP", LocationType.InactiveVolumesAndCollected, index: 2),
 
@@ -215,7 +216,7 @@ namespace FEZAP.Archipelago
             new("Parlor Anti-Cube", "ZU_HOUSE_QR", LocationType.InactiveVolumesAndCollected, index: 0),
 
             // Throne cube accessible in 3 locations
-            new("Throne Anti-Cube", "SEWER_QR", LocationType.DestroyedTriles, [15, 41, 14]),
+            new("Throne Anti-Cube", "SEWER_QR", LocationType.InactiveArtObjectsAndDestroyedTriles, [15, 41, 14], index: 0),
             new("Throne Anti-Cube", "ZU_HOUSE_EMPTY", LocationType.InactiveVolumesAndCollected, index: 2),
             new("Throne Anti-Cube", "ZU_THRONE_RUINS", LocationType.InactiveVolumesAndCollected, index: 2),
 
@@ -231,9 +232,9 @@ namespace FEZAP.Archipelago
         ];
 
         private static readonly List<Location> heartCubeLocations = [
-            new("Black Monolith Heart Cube", "RITUAL", LocationType.InactiveArtObjectsAndCollected, index: -11),
+            new("Black Monolith Heart Cube", "RITUAL", LocationType.InactiveArtObjectsAndCollected, index: -11), // I can't figure out where -11 is coming from in the game's data files the levelinfo command is showing it and it works??
             new("Telescope Heart Cube", "TELESCOPE", LocationType.InactiveVolumesAndCollected, index: 1, notCollectedState: "HNC"),
-            new("Security Question Heart Cube", "ZU_ZUISH", LocationType.DestroyedTriles, [13, 59, 15]),
+            new("Security Question Heart Cube", "ZU_ZUISH", LocationType.InactiveArtObjectsAndDestroyedTriles, [13, 59, 15], index: 0),
         ];
 
         // 24 total
