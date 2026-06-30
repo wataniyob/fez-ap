@@ -53,16 +53,21 @@ namespace FEZAP.Archipelago
 
                 // Remove the location from the save state
                 LevelSaveData levelData = GameState.SaveData.World[location.levelName];
+                int count;
                 switch (location.type)
                 {
                     case LocationType.DestroyedTriles:
-                        levelData.DestroyedTriles.AddRange(Enumerable.Repeat(location.emplacement, location.count));
+                        count = levelData.DestroyedTriles.Count(x => x == location.emplacement);
+                        if (count < location.count)
+                            levelData.DestroyedTriles.AddRange(Enumerable.Repeat(location.emplacement, location.count - count));
                         break;
                     case LocationType.InactiveArtObjects:
-                        levelData.InactiveArtObjects.Add(location.index);
+                        if (!levelData.InactiveArtObjects.Contains(location.index))
+                            levelData.InactiveArtObjects.Add(location.index);
                         break;
                     case LocationType.InactiveNPCs:
-                        levelData.InactiveNPCs.Add(location.index);
+                        if (!levelData.InactiveNPCs.Contains(location.index))
+                            levelData.InactiveNPCs.Add(location.index);
                         break;
                     case LocationType.AchievementCode:
                         GameState.SaveData.AchievementCheatCodeDone = true;
@@ -71,16 +76,21 @@ namespace FEZAP.Archipelago
                         GameState.SaveData.MapCheatCodeDone = true;
                         break;
                     case LocationType.InactiveVolumesAndCollected:
-                        levelData.InactiveVolumes.Add(location.index);
+                        if (!levelData.InactiveVolumes.Contains(location.index))
+                            levelData.InactiveVolumes.Add(location.index);
                         levelData.ScriptingState = null;
                         break;
                     case LocationType.InactiveArtObjectsAndCollected:
-                        levelData.InactiveArtObjects.Add(location.index);
+                        if (!levelData.InactiveArtObjects.Contains(location.index))
+                            levelData.InactiveArtObjects.Add(location.index);
                         levelData.ScriptingState = null;
                         break;
                     case LocationType.InactiveArtObjectsAndDestroyedTriles:
-                        levelData.InactiveArtObjects.Add(location.index);
-                        levelData.DestroyedTriles.AddRange(Enumerable.Repeat(location.emplacement, location.count));
+                        if (!levelData.InactiveArtObjects.Contains(location.index))
+                            levelData.InactiveArtObjects.Add(location.index);
+                        count = levelData.DestroyedTriles.Count(x => x == location.emplacement);
+                        if (count < location.count)
+                            levelData.DestroyedTriles.AddRange(Enumerable.Repeat(location.emplacement, location.count - count));
                         break;
                 }
             }

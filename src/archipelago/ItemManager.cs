@@ -106,43 +106,56 @@ namespace FEZAP.Archipelago
                     GameState.SaveData.PiecesOfHeart += 1;
                     break;
                 case "Arch Map":
-                    GameState.SaveData.Maps.Add("MAP_ARCH");
+                    if (!GameState.SaveData.Maps.Contains("MAP_ARCH"))
+                        GameState.SaveData.Maps.Add("MAP_ARCH");
                     break;
                 case "Crypt Map A":
-                    GameState.SaveData.Maps.Add("MAP_CRYPT_A");
+                    if (!GameState.SaveData.Maps.Contains("MAP_CRYPT_A"))
+                        GameState.SaveData.Maps.Add("MAP_CRYPT_A");
                     break;
                 case "Crypt Map B":
-                    GameState.SaveData.Maps.Add("MAP_CRYPT_B");
+                    if (!GameState.SaveData.Maps.Contains("MAP_CRYPT_B"))
+                        GameState.SaveData.Maps.Add("MAP_CRYPT_B");
                     break;
                 case "Crypt Map C":
-                    GameState.SaveData.Maps.Add("MAP_CRYPT_C");
+                    if (!GameState.SaveData.Maps.Contains("MAP_CRYPT_C"))
+                        GameState.SaveData.Maps.Add("MAP_CRYPT_C");
                     break;
                 case "Crypt Map D":
-                    GameState.SaveData.Maps.Add("MAP_CRYPT_D");
+                    if (!GameState.SaveData.Maps.Contains("MAP_CRYPT_D"))
+                        GameState.SaveData.Maps.Add("MAP_CRYPT_D");
                     break;
                 case "QR Code Map":
-                    GameState.SaveData.Maps.Add("MAP_MYSTERY");
+                    if (!GameState.SaveData.Maps.Contains("MAP_MYSTERY"))
+                        GameState.SaveData.Maps.Add("MAP_MYSTERY");
                     break;
                 case "Pivot Map":
-                    GameState.SaveData.Maps.Add("MAP_PIVOT");
+                    if (!GameState.SaveData.Maps.Contains("MAP_PIVOT"))
+                        GameState.SaveData.Maps.Add("MAP_PIVOT");
                     break;
                 case "Ritual Map":
-                    GameState.SaveData.Maps.Add("MAP_RITUAL");
+                    if (!GameState.SaveData.Maps.Contains("MAP_RITUAL"))
+                        GameState.SaveData.Maps.Add("MAP_RITUAL");
                     break;
                 case "Tree Sky Map":
-                    GameState.SaveData.Maps.Add("MAP_TREE_SKY");
+                    if (!GameState.SaveData.Maps.Contains("MAP_TREE_SKY"))
+                        GameState.SaveData.Maps.Add("MAP_TREE_SKY");
                     break;
                 case "The Writing Cube":
-                    GameState.SaveData.Artifacts.Add(ActorType.LetterCube);
+                    if (!GameState.SaveData.Artifacts.Contains(ActorType.LetterCube))
+                        GameState.SaveData.Artifacts.Add(ActorType.LetterCube);
                     break;
                 case "The Counting Cube":
-                    GameState.SaveData.Artifacts.Add(ActorType.NumberCube);
+                    if (!GameState.SaveData.Artifacts.Contains(ActorType.NumberCube))
+                        GameState.SaveData.Artifacts.Add(ActorType.NumberCube);
                     break;
                 case "The Tome Artifact":
-                    GameState.SaveData.Artifacts.Add(ActorType.Tome);
+                    if (!GameState.SaveData.Artifacts.Contains(ActorType.Tome))
+                        GameState.SaveData.Artifacts.Add(ActorType.Tome);
                     break;
                 case "The Skull Artifact":
-                    GameState.SaveData.Artifacts.Add(ActorType.TriSkull);
+                    if (!GameState.SaveData.Artifacts.Contains(ActorType.TriSkull))
+                        GameState.SaveData.Artifacts.Add(ActorType.TriSkull);
                     break;
                 case "Sunglasses":
                     GameState.SaveData.HasFPView = true;
