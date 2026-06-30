@@ -92,6 +92,7 @@ namespace FEZAP.Archipelago
             var slotData = session.DataStorage.GetSlotData(session.ConnectionInfo.Slot);
 
             // Restore internal information
+            Fezap.doorManager.ResetDoors();
             Fezap.itemManager.RestoreReceivedItems();
             Fezap.locationManager.RestoreCollectedLocations();
 
@@ -102,8 +103,7 @@ namespace FEZAP.Archipelago
             session.Items.ItemReceived += HandleRecvItem;
 
             // Setup door locking/unlocking
-            LevelManager.LevelChanging += Fezap.doorManager.LockDoors;
-            LevelManager.LevelChanging += Fezap.doorManager.UnlockDoors;
+            LevelManager.LevelChanged += Fezap.doorManager.HandleDoors;
 
             // Setup goal checking
             LocationManager.goal = Convert.ToInt16(slotData["goal"]);
@@ -125,7 +125,7 @@ namespace FEZAP.Archipelago
                 LevelManager.LevelChanging += HandleVisualPainRemoval;
                 FezugConsole.Print("Visual pain disabled");
             }
-            
+
             // put level changes in AP data storage for tracking
             Fezap.regionManager.UpdateCurrentRegion();
             LevelManager.LevelChanged += Fezap.regionManager.UpdateCurrentRegion;

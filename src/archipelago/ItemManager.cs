@@ -148,44 +148,52 @@ namespace FEZAP.Archipelago
                     GameState.SaveData.HasFPView = true;
                     break;
                 case "Boileroom Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("VILLAGEVILLE_3D", [35, 30, 36]));
+                    DoorManager.BoileroomUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Lighthouse Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("LIGHTHOUSE", [21, 20, 27]));
+                    DoorManager.LighthouseUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Tree Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("TREE", [41, 50, 2]));
+                    DoorManager.TreeUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Well Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("RAILS", [14, 21, 14]));
+                    DoorManager.WellUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Windmill Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("PIVOT_ONE", [26, 61, 30]));
+                    DoorManager.WindmillUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Mausoleum Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("MAUSOLEUM", [21, 13, 23]));
+                    DoorManager.MausoleumUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Sewer Hub Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("SEWER_HUB", [10, 42, 9]));
+                    DoorManager.SewerHubUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Sewer Pillars Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("SEWER_PILLARS", [8, 14, 30]));
+                    DoorManager.SewerPillarsUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Arch Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("NATURE_HUB", [16, 18, 15]));
-                    DoorManager.lockedDoors.Remove(new("NATURE_HUB", [16, 18, 15]));
+                    DoorManager.ArchUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Bell Tower Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("NATURE_HUB", [0, 14, 27]));
-                    DoorManager.lockedDoors.Remove(new("NATURE_HUB", [0, 14, 27]));
+                    DoorManager.BellTowerUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Cabin Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("TREE", [24, 59, 20]));
-                    DoorManager.lockedDoors.Remove(new("TREE", [24, 59, 20]));
+                    DoorManager.CabinUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Throne Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("TREE_SKY", [11, 51, 9]));
-                    DoorManager.lockedDoors.Remove(new("TREE_SKY", [11, 51, 9]));
+                    DoorManager.ThroneUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Rotation Trap":
                     DoRotationTrap();
