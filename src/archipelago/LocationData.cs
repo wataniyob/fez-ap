@@ -8,10 +8,12 @@ namespace FEZAP.Archipelago
         InactiveArtObjects,  // chests, clock anti-cubes
         InactiveNPCs,  // owls
         AchievementCode,  // for achievement code andit-cube
-        QrMapCode,  // for QR map code anti-cube
         InactiveVolumesAndCollected, // code-activatable anti-cubes/heart pieces
         InactiveArtObjectsAndCollected, // black monolith
         InactiveArtObjectsAndDestroyedTriles, // tuning forks, block puzzles, bell
+        SharedParlorZuQr, // shared anti-cube between Parlor and Zu QR Wall
+        SharedThroneSewerQr, // shared anti-cube between the two Zu Throne rooms and the Sewer QR Code
+        SharedWatertowerMapQr, // shared anti-cube between Watertower Secret and the QR Code Map
     }
 
     /// Location information container
@@ -211,18 +213,10 @@ namespace FEZAP.Archipelago
             new("Zu Bridge Floor Anti-Cube", "ZU_BRIDGE", LocationType.InactiveVolumesAndCollected, index: 2),
             new("Zu Code Loop Anti-Cube", "ZU_CODE_LOOP", LocationType.InactiveVolumesAndCollected, index: 2),
 
-            // Parlor cube accessible in 2 locations
-            new("Parlor Anti-Cube", "PARLOR", LocationType.InactiveVolumesAndCollected, index: 4),
-            new("Parlor Anti-Cube", "ZU_HOUSE_QR", LocationType.InactiveVolumesAndCollected, index: 0),
-
-            // Throne cube accessible in 3 locations
-            new("Throne Anti-Cube", "SEWER_QR", LocationType.InactiveArtObjectsAndDestroyedTriles, [15, 41, 14], index: 0),
-            new("Throne Anti-Cube", "ZU_HOUSE_EMPTY", LocationType.InactiveVolumesAndCollected, index: 2),
-            new("Throne Anti-Cube", "ZU_THRONE_RUINS", LocationType.InactiveVolumesAndCollected, index: 2),
-
-            // Watertower Secret cube accessible in 2 locations
-            new("Watertower Secret Anti-Cube", "WATERTOWER_SECRET", LocationType.InactiveVolumesAndCollected, index: 2),
-            new("Watertower Secret Anti-Cube", "GOMEZ_HOUSE", LocationType.QrMapCode),
+            // Special case shared cubes which can be collected in multiple locations
+            new("Parlor Anti-Cube", "GOMEZ_HOUSE", LocationType.SharedParlorZuQr),
+            new("Throne Anti-Cube", "GOMEZ_HOUSE", LocationType.SharedThroneSewerQr),
+            new("Watertower Secret Anti-Cube", "GOMEZ_HOUSE", LocationType.SharedWatertowerMapQr),
 
             // Use InactiveArtObjects since DestroyedTriles doesn't work for these since they're all [0, 0, 0]
             new("Clock Tower Minute Anti-Cube", "CLOCK", LocationType.InactiveArtObjects, index: 53),

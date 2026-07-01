@@ -72,9 +72,6 @@ namespace FEZAP.Archipelago
                     case LocationType.AchievementCode:
                         GameState.SaveData.AchievementCheatCodeDone = true;
                         break;
-                    case LocationType.QrMapCode:
-                        GameState.SaveData.MapCheatCodeDone = true;
-                        break;
                     case LocationType.InactiveVolumesAndCollected:
                         if (!levelData.InactiveVolumes.Contains(location.index))
                             levelData.InactiveVolumes.Add(location.index);
@@ -92,8 +89,72 @@ namespace FEZAP.Archipelago
                         if (count < location.count)
                             levelData.DestroyedTriles.AddRange(Enumerable.Repeat(location.emplacement, location.count - count));
                         break;
+                    case LocationType.SharedParlorZuQr:
+                        CollectSharedParlorZuQrCube();
+                        break;
+                    case LocationType.SharedThroneSewerQr:
+                        CollectSharedThroneSewerQrCube();
+                        break;
+                    case LocationType.SharedWatertowerMapQr:
+                        CollectSharedWatertowerMapQrCube();
+                        break;
                 }
             }
+        }
+
+        private void CollectSharedParlorZuQrCube()
+        {
+            // Loosely based on TrialAndAwards.ResolveZuQR
+            if (!GameState.SaveData.World.ContainsKey("PARLOR"))
+                GameState.SaveData.World.Add("PARLOR", new LevelSaveData());
+            LevelSaveData levelData = GameState.SaveData.World["PARLOR"];
+            if (!levelData.InactiveVolumes.Contains(4))
+                levelData.InactiveVolumes.Add(4);
+            levelData.ScriptingState = null;
+
+            if (!GameState.SaveData.World.ContainsKey("ZU_HOUSE_QR"))
+                GameState.SaveData.World.Add("ZU_HOUSE_QR", new LevelSaveData());
+            levelData = GameState.SaveData.World["ZU_HOUSE_QR"];
+            if (!levelData.InactiveVolumes.Contains(0))
+                levelData.InactiveVolumes.Add(0);
+            levelData.ScriptingState = null;
+        }
+
+        private void CollectSharedThroneSewerQrCube()
+        {
+            // Loosely based on TrialAndAwards.ResolveSewerQR
+            if (!GameState.SaveData.World.ContainsKey("SEWER_QR"))
+                GameState.SaveData.World.Add("SEWER_QR", new LevelSaveData());
+            LevelSaveData levelData = GameState.SaveData.World["SEWER_QR"];
+            if (!levelData.InactiveArtObjects.Contains(0))
+                levelData.InactiveArtObjects.Add(0);
+            levelData.ScriptingState = null;
+
+            if (!GameState.SaveData.World.ContainsKey("ZU_THRONE_RUINS"))
+                GameState.SaveData.World.Add("ZU_THRONE_RUINS", new LevelSaveData());
+            levelData = GameState.SaveData.World["ZU_THRONE_RUINS"];
+            if (!levelData.InactiveVolumes.Contains(2))
+                levelData.InactiveVolumes.Add(2);
+            levelData.ScriptingState = null;
+
+            if (!GameState.SaveData.World.ContainsKey("ZU_HOUSE_EMPTY"))
+                GameState.SaveData.World.Add("ZU_HOUSE_EMPTY", new LevelSaveData());
+            levelData = GameState.SaveData.World["ZU_HOUSE_EMPTY"];
+            if (!levelData.InactiveVolumes.Contains(2))
+                levelData.InactiveVolumes.Add(2);
+            levelData.ScriptingState = null;
+        }
+
+        private void CollectSharedWatertowerMapQrCube()
+        {
+            GameState.SaveData.MapCheatCodeDone = true;
+
+            if (!GameState.SaveData.World.ContainsKey("WATERTOWER_SECRET"))
+                GameState.SaveData.World.Add("WATERTOWER_SECRET", new LevelSaveData());
+            LevelSaveData levelData = GameState.SaveData.World["WATERTOWER_SECRET"];
+            if (!levelData.InactiveVolumes.Contains(2))
+                levelData.InactiveVolumes.Add(2);
+            levelData.ScriptingState = null;
         }
 
         private bool IsDestroyedTrileCollected(Location location, LevelSaveData levelData)
@@ -121,12 +182,65 @@ namespace FEZAP.Archipelago
                 LocationType.InactiveArtObjects => levelData.InactiveArtObjects.Contains(location.index),
                 LocationType.InactiveNPCs => levelData.InactiveNPCs.Contains(location.index),
                 LocationType.AchievementCode => GameState.SaveData.AchievementCheatCodeDone,
-                LocationType.QrMapCode => GameState.SaveData.MapCheatCodeDone && !(GameState.SaveData.World.ContainsKey("WATERTOWER_SECRET") && GameState.SaveData.World["WATERTOWER_SECRET"].ScriptingState == "NOT_COLLECTED"),
                 LocationType.InactiveVolumesAndCollected => levelData.InactiveVolumes.Contains(location.index) && levelData.ScriptingState != location.notCollectedState,
                 LocationType.InactiveArtObjectsAndCollected => levelData.InactiveArtObjects.Contains(location.index) && levelData.ScriptingState != location.notCollectedState,
                 LocationType.InactiveArtObjectsAndDestroyedTriles => levelData.InactiveArtObjects.Contains(location.index) && IsDestroyedTrileCollected(location, levelData),
+                LocationType.SharedParlorZuQr => IsSharedParlorZuQrCubeCollected(),
+                LocationType.SharedThroneSewerQr => IsSharedThroneSewerQrCubeCollected(),
+                LocationType.SharedWatertowerMapQr => IsSharedWatertowerMapQrCubeCollected(),
                 _ => false,
             };
+        }
+
+        private bool IsSharedParlorZuQrCubeCollected()
+        {
+            LevelSaveData parlorData = GameState.SaveData.World.ContainsKey("PARLOR") ? GameState.SaveData.World["PARLOR"] : null;
+            LevelSaveData qrData = GameState.SaveData.World.ContainsKey("ZU_HOUSE_QR") ? GameState.SaveData.World["ZU_HOUSE_QR"] : null;
+
+            if (parlorData != null && parlorData.ScriptingState == "NOT_COLLECTED")
+                return false;
+            if (qrData != null && qrData.ScriptingState == "NOT_COLLECTED")
+                return false;
+
+            if (parlorData != null && parlorData.InactiveVolumes.Contains(4))
+                return true;
+            if (qrData != null && qrData.InactiveVolumes.Contains(0))
+                return true;
+
+            return false;
+        }
+
+        private bool IsSharedThroneSewerQrCubeCollected()
+        {
+            LevelSaveData qrData = GameState.SaveData.World.ContainsKey("SEWER_QR") ? GameState.SaveData.World["SEWER_QR"] : null;
+            LevelSaveData throne1Data = GameState.SaveData.World.ContainsKey("ZU_THRONE_RUINS") ? GameState.SaveData.World["ZU_THRONE_RUINS"] : null;
+            LevelSaveData throne2Data = GameState.SaveData.World.ContainsKey("ZU_HOUSE_EMPTY") ? GameState.SaveData.World["ZU_HOUSE_EMPTY"] : null;
+
+            if (qrData != null && qrData.ScriptingState == "NOT_COLLECTED")
+                return false;
+            if (throne1Data != null && throne1Data.ScriptingState == "NOT_COLLECTED")
+                return false;
+            if (throne2Data != null && throne2Data.ScriptingState == "NOT_COLLECTED")
+                return false;
+
+            if (qrData != null && qrData.InactiveArtObjects.Contains(0))
+                return true;
+            if (throne1Data != null && throne1Data.InactiveVolumes.Contains(2))
+                return true;
+            if (throne2Data != null && throne2Data.InactiveVolumes.Contains(2))
+                return true;
+
+            return false;
+        }
+
+        private bool IsSharedWatertowerMapQrCubeCollected()
+        {
+            LevelSaveData watertowerData = GameState.SaveData.World.ContainsKey("WATERTOWER_SECRET") ? GameState.SaveData.World["WATERTOWER_SECRET"] : null;
+
+            if (watertowerData != null && watertowerData.ScriptingState == "NOT_COLLECTED")
+                return false;
+
+            return GameState.SaveData.MapCheatCodeDone;
         }
 
         private List<Location> GetAllCollected()
