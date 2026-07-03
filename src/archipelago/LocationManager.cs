@@ -34,6 +34,7 @@ namespace FEZAP.Archipelago
         public static CollectibleData receivedCollectibleData = new();
         public static List<Location> allCollectedLocations = [];
         public static int goal;  // 0 is 32 Cubes and 1 is 64 Cubes
+        public static bool shuffleClockAntis;
 
         public void RestoreCollectedLocations()
         {
@@ -156,6 +157,22 @@ namespace FEZAP.Archipelago
                 levelData.InactiveVolumes.Add(2);
             levelData.ScriptingState = null;
         }
+        
+        public void HandleDisabledClockTower()
+        {
+            if (shuffleClockAntis)
+                return;
+            var clockTowerLocations = LocationData.allLocations.Where(location => location.name.Contains("Clock Tower"));
+            foreach (Location location in clockTowerLocations)
+            {
+                if (!GameState.SaveData.World.ContainsKey(location.levelName))
+                    GameState.SaveData.World.Add(location.levelName, new LevelSaveData());
+                LevelSaveData levelData = GameState.SaveData.World[location.levelName];
+
+                if (!levelData.InactiveArtObjects.Contains(location.index))
+                    levelData.InactiveArtObjects.Add(location.index);
+            }
+        }
 
         private bool IsDestroyedTrileCollected(Location location, LevelSaveData levelData)
         {
@@ -167,6 +184,10 @@ namespace FEZAP.Archipelago
 
         private bool IsCollected(Location location)
         {
+            // If we're not shuffling clock tower antis and this is one, don't count it as collected
+            if (!shuffleClockAntis && location.name.Contains("Clock Tower"))
+                return false;
+
             // If level doesn't exist, it's not collected in this save
             if (!GameState.SaveData.World.ContainsKey(location.levelName))
             {

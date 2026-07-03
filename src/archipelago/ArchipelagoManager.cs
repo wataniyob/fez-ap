@@ -111,6 +111,10 @@ namespace FEZAP.Archipelago
             string goalStr = LocationManager.goal == 0 ? "32 Cube Ending" : "64 Cube Ending";
             FezugConsole.Print($"Goal set to {goalStr}");
 
+            // Disable clock tower antis if they're not shuffled
+            LocationManager.shuffleClockAntis = Convert.ToBoolean(slotData["shuffle_clock_antis"]);
+            Fezap.locationManager.HandleDisabledClockTower();
+
             // Shuffle tetromino codes if in options
             if (Convert.ToBoolean(slotData["scramble_tetrominos"]))
             {
