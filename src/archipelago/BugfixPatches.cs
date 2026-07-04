@@ -19,6 +19,7 @@ namespace FEZAP.Archipelago
         private MethodInfo BitShineOnYouCrazyDiamondsMethod;
         private FieldInfo BitCollectSoundsField;
         private FieldInfo BitTrackedBitsField;
+        private int bitCollectedCount = 0;
 
         public BugfixPatches(Game game) : base(game) {}
 
@@ -65,7 +66,10 @@ namespace FEZAP.Archipelago
                 {
                     SoundEffect[] CollectSounds = (SoundEffect[])BitCollectSoundsField.GetValue(self);
                     List<TrileInstance> TrackedBits = (List<TrileInstance>)BitTrackedBitsField.GetValue(self);
-                    CollectSounds[GameState.SaveData.CollectedParts].Emit();
+                    CollectSounds[bitCollectedCount].Emit();
+                    bitCollectedCount++;
+                    if (bitCollectedCount >= 8)
+                        bitCollectedCount = 0;
                     GameState.SaveData.ThisLevel.DestroyedTriles.Add(collect.OriginalEmplacement);
                     GameState.SaveData.ThisLevel.FilledConditions.SplitUpCount++;
                     LevelManager.ClearTrile(collect);
