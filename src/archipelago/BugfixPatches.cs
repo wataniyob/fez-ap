@@ -61,11 +61,11 @@ namespace FEZAP.Archipelago
             BitShineOnYouCrazyDiamondsMethod.Invoke(self, new object[] { (float)gameTime.ElapsedGameTime.TotalSeconds });
             if (PlayerManager.Action != ActionType.GateWarp && PlayerManager.Action != ActionType.LesserWarp && !PlayerManager.Action.IsSwimming())
             {
+                List<TrileInstance> TrackedBits = (List<TrileInstance>)BitTrackedBitsField.GetValue(self);
                 TrileInstance collect = PlayerManager.AxisCollision[VerticalDirection.Up].Surface ?? PlayerManager.AxisCollision[VerticalDirection.Down].Surface;
-                if (collect != null && collect.Trile.ActorSettings.Type == ActorType.GoldenCube && !LevelManager.Triles.Values.Any((TrileInstance x) => x.Overlaps && x.OverlappedTriles.Contains(collect) && x.Position == collect.Position))
+                if (collect != null && collect.Trile.ActorSettings.Type == ActorType.GoldenCube && TrackedBits.Contains(collect) && !LevelManager.Triles.Values.Any((TrileInstance x) => x.Overlaps && x.OverlappedTriles.Contains(collect) && x.Position == collect.Position))
                 {
                     SoundEffect[] CollectSounds = (SoundEffect[])BitCollectSoundsField.GetValue(self);
-                    List<TrileInstance> TrackedBits = (List<TrileInstance>)BitTrackedBitsField.GetValue(self);
                     CollectSounds[bitCollectedCount].Emit();
                     bitCollectedCount++;
                     if (bitCollectedCount >= 8)
