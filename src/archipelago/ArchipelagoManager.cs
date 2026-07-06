@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Enums;
@@ -101,6 +102,7 @@ namespace FEZAP.Archipelago
             session.Socket.ErrorReceived += HandleErrorRecv;
             session.Socket.SocketClosed += HandleSocketClosed;
             session.Items.ItemReceived += HandleRecvItem;
+            session.Locations.CheckedLocationsUpdated += HandleRecvLocation;
 
             // Setup door locking/unlocking
             LevelManager.LevelChanged += Fezap.doorManager.HandleDoors;
@@ -263,6 +265,14 @@ namespace FEZAP.Archipelago
 
             SoundEffect soundEffect = ContentManagerProvider.Global.Load<SoundEffect>(soundEffectPath);
             soundEffect.EmitAt(PlayerManager.Position).NoAttenuation = true;
+        }
+
+        private static void HandleRecvLocation(ReadOnlyCollection<long> newCheckedLocations)
+        {
+            foreach (long id in newCheckedLocations)
+            {
+                Fezap.locationManager.MarkLocationCollected(id);
+            }
         }
 
         private void HandleVisualPainRemoval()
