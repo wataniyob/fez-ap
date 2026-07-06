@@ -87,9 +87,11 @@ namespace FEZAP.Archipelago
             {
                 case "Golden Cube":
                     GameState.SaveData.CubeShards += 1;
+                    GameState.OnHudElementChanged();
                     break;
                 case "Anti-Cube":
                     GameState.SaveData.SecretCubes += 1;
+                    GameState.OnHudElementChanged();
                     break;
                 case "Cube Bit":
                     GameState.SaveData.CollectedParts += 1;
@@ -98,6 +100,7 @@ namespace FEZAP.Archipelago
                         GameState.SaveData.CollectedParts = 0;
                         GameState.SaveData.CubeShards += 1;
                     }
+                    GameState.OnHudElementChanged();
                     break;
                 case "Owl":
                     GameState.SaveData.CollectedOwls += 1;
