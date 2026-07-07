@@ -99,15 +99,19 @@ namespace FEZAP.Archipelago
                  */
 
                 ILCursor cursor = new(il);
+                ILLabel dontSkipLabel = il.DefineLabel();
                 ILLabel skipLabel = il.DefineLabel();
 
-                cursor.GotoNext(MoveType.After, i => i.MatchCallvirt("FezGame.Services.IPlayerManager", "set_Action"));
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate(OpenTreasureActSwitchHooked);
-                cursor.Emit(OpCodes.Br, skipLabel);
+                cursor.GotoNext(MoveType.After, i => i.MatchCallvirt("FezGame.Services.IPlayerManager", "set_Action")); // Move cursor to right after base.PlayerManager.Action = ActionType.Idle;
+                cursor.Emit(OpCodes.Call, typeof(ArchipelagoManager).GetMethod(nameof(ArchipelagoManager.IsConnected), BindingFlags.Public | BindingFlags.Static)); // Are we in an Archipelago?
+                cursor.Emit(OpCodes.Brfalse, dontSkipLabel); // Branch to the original method code if not
+                cursor.Emit(OpCodes.Ldarg_0); // Push `this` onto the stack, to be the "self" argument in our hook
+                cursor.EmitDelegate(OpenTreasureActSwitchHooked); // Call our hooked method
+                cursor.Emit(OpCodes.Br, skipLabel); // Branch to after the code we want to skip
+                cursor.MarkLabel(dontSkipLabel); // Put label at original code position
 
-                cursor.GotoNext(MoveType.After, i => i.MatchCallvirt("FezGame.Services.IGameStateManager", "OnHudElementChanged"));
-                cursor.MarkLabel(skipLabel);
+                cursor.GotoNext(MoveType.After, i => i.MatchCallvirt("FezGame.Services.IGameStateManager", "OnHudElementChanged")); // Move cursor to right after base.GameState.OnHudElementChanged();
+                cursor.MarkLabel(skipLabel); // Put label for where we want to skip to
             });
         }
 
