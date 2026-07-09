@@ -96,8 +96,8 @@ namespace FEZAP.Archipelago
 
             // Patch DotHost.Say delegate to prevent getting interrupted by Emotional Support
             Type DotService = typeof(Fez).Assembly.GetType("FezGame.Services.Scripting.DotService");
-            Type DotServiceSayDelegateType = DotService.GetNestedTypes(BindingFlags.NonPublic).First(type => type.Name.Contains("<Say>")); // Is this stable across platforms?
-            MethodInfo DotServiceSayDelegate = DotServiceSayDelegateType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).First(m => m.Name.Contains("m__0")); // Is this stable across platforms?
+            Type DotServiceSayDelegateType = DotService.GetNestedTypes(BindingFlags.NonPublic).First(t => t.Name.Contains("<Say>") || t.Name.Contains("<>c__DisplayClass4_0")); // Compiler dependant, need these different cases for unix vs windows... Will it be stable?
+            MethodInfo DotServiceSayDelegate = DotServiceSayDelegateType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).First(m => m.Name.Contains("m__0") || m.Name.Contains("b__0")); // ^
             DotServiceSayDelegateHook = new Hook(DotServiceSayDelegate, DotServiceSayDelegateHooked);
         }
 
