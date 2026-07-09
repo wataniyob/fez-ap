@@ -5,6 +5,7 @@ using FezEngine.Services.Scripting;
 using FezEngine.Structure;
 using FezEngine.Tools;
 using FezGame;
+using FezGame.Components;
 using FezGame.Services;
 using FezGame.Structure;
 using Microsoft.Xna.Framework;
@@ -40,6 +41,8 @@ namespace FEZAP.Archipelago
         private int finalCubeShards;
         private int finalSecretCubes;
 
+        private Hook DotServiceSayDelegateHook;
+
         [ServiceDependency]
         public IGameStateManager GameState { get; set; }
 
@@ -57,6 +60,9 @@ namespace FEZAP.Archipelago
 
         [ServiceDependency]
         public IDotService DotService { get; set; }
+
+        [ServiceDependency]
+        public IDotManager Dot { get; set; }
 
         public override void Initialize()
         {
@@ -87,6 +93,12 @@ namespace FEZAP.Archipelago
             Type FinalRebuildHost = typeof(Fez).Assembly.GetType("FezGame.Components.FinalRebuildHost");
             FinalRebuildHostTryInitializeHook = new Hook(FinalRebuildHost.GetMethod("TryInitialize", BindingFlags.NonPublic | BindingFlags.Instance), FinalRebuildHostTryInitializeHooked);
             FinalRebuildHostUpdateHook = new Hook(FinalRebuildHost.GetMethod("Update", BindingFlags.Public | BindingFlags.Instance), FinalRebuildHostUpdateHooked);
+
+            // Patch DotHost.Say delegate to prevent getting interrupted by Emotional Support
+            Type DotService = typeof(Fez).Assembly.GetType("FezGame.Services.Scripting.DotService");
+            Type DotServiceSayDelegateType = DotService.GetNestedTypes(BindingFlags.NonPublic).First(type => type.Name.Contains("<Say>")); // Is this stable across platforms?
+            MethodInfo DotServiceSayDelegate = DotServiceSayDelegateType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).First(m => m.Name.Contains("m__0")); // Is this stable across platforms?
+            DotServiceSayDelegateHook = new Hook(DotServiceSayDelegate, DotServiceSayDelegateHooked);
         }
 
         private void BitUpdateHooked(Action<object, GameTime> original, object self, GameTime gameTime)
@@ -313,6 +325,14 @@ namespace FEZAP.Archipelago
             GameState.SaveData.SecretCubes = origSecretCubes;
         }
 
+        private bool DotServiceSayDelegateHooked(Func<object, float, float, bool> original, object self, float f1, float f2)
+        {
+            if (Dot.Behaviour == DotHost.BehaviourType.SpiralAroundWithCamera)
+                return false;
+
+            return original(self, f1, f2);
+        }
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -321,6 +341,7 @@ namespace FEZAP.Archipelago
             OpenTreasureActHook.Dispose();
             FinalRebuildHostTryInitializeHook.Dispose();
             FinalRebuildHostUpdateHook.Dispose();
+            DotServiceSayDelegateHook.Dispose();
         }
     }
 }
