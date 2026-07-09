@@ -17,7 +17,6 @@ namespace FEZAP.Archipelago
 {
     public class BugfixPatches(Game game) : GameComponent(game)
     {
-        private Type BitHost;
         private Hook BitUpdateHook;
         private Hook BitTryInitializeHook;
 
@@ -28,17 +27,14 @@ namespace FEZAP.Archipelago
         private FieldInfo BitSolidCubesField;
         private int bitCollectedCount = 0;
 
-        private Type SwooshingCube;
         private ConstructorInfo SwooshingCubeConstructor;
         private FieldInfo SwooshingCubeSplineField;
         private MethodInfo SwooshingCubeDisposeMethod;
 
-        private Type OpenTreasure;
         private FieldInfo OpenTreasureTreasureActorType;
         private FieldInfo OpenTreasureTreasureInstance;
         private ILHook OpenTreasureActHook;
 
-        private Type FinalRebuildHost;
         private Hook FinalRebuildHostTryInitializeHook;
         private Hook FinalRebuildHostUpdateHook;
         private int finalCubeShards;
@@ -67,7 +63,7 @@ namespace FEZAP.Archipelago
             base.Initialize();
 
             // Hook the SplitUpCubeHost.Update method to not add a bit to the save file or attempt to spawn a cube
-            BitHost = typeof(Fez).Assembly.GetType("FezGame.Components.SplitUpCubeHost");
+            Type BitHost = typeof(Fez).Assembly.GetType("FezGame.Components.SplitUpCubeHost");
             BitShineOnYouCrazyDiamondsMethod = BitHost.GetMethod("ShineOnYouCrazyDiamonds", BindingFlags.NonPublic | BindingFlags.Instance);
             BitCollectSoundsField = BitHost.GetField("CollectSounds", BindingFlags.NonPublic | BindingFlags.Instance);
             BitTrackedBitsField = BitHost.GetField("TrackedBits", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -76,19 +72,19 @@ namespace FEZAP.Archipelago
             // Also hook TryInitialize to not add in-progress bits and try to assemble a cube
             BitTryInitializeHook = new Hook(BitHost.GetMethod("TryInitialize", BindingFlags.NonPublic | BindingFlags.Instance), BitTryInitializeHooked);
             BitSolidCubesField = BitHost.GetField("SolidCubes", BindingFlags.NonPublic | BindingFlags.Instance);
-            SwooshingCube = BitHost.GetNestedType("SwooshingCube", BindingFlags.NonPublic);
+            Type SwooshingCube = BitHost.GetNestedType("SwooshingCube", BindingFlags.NonPublic);
             SwooshingCubeConstructor = SwooshingCube.GetConstructor([typeof(TrileInstance), typeof(Mesh), typeof(Vector3), typeof(Quaternion)]);
             SwooshingCubeSplineField = SwooshingCube.GetField("Spline", BindingFlags.Public | BindingFlags.Instance);
             SwooshingCubeDisposeMethod = SwooshingCube.GetMethod("Dispose", BindingFlags.Public | BindingFlags.Instance);
 
             // Manipulate the IL for OpenTreasure to reduce side effects
-            OpenTreasure = typeof(Fez).Assembly.GetType("FezGame.Components.Actions.OpenTreasure");
+            Type OpenTreasure = typeof(Fez).Assembly.GetType("FezGame.Components.Actions.OpenTreasure");
             OpenTreasureTreasureActorType = OpenTreasure.GetField("treasureActorType", BindingFlags.NonPublic | BindingFlags.Instance);
             OpenTreasureTreasureInstance = OpenTreasure.GetField("treasureInstance", BindingFlags.NonPublic | BindingFlags.Instance);
             OpenTreasureActHook = new ILHook(OpenTreasure.GetMethod("Act", BindingFlags.NonPublic | BindingFlags.Instance), CreateOpenTreasureActSwitchHook);
 
             // Patch FinalRebuildHost to use cube count before the archipelago goal was marked as achieved
-            FinalRebuildHost = typeof(Fez).Assembly.GetType("FezGame.Components.FinalRebuildHost");
+            Type FinalRebuildHost = typeof(Fez).Assembly.GetType("FezGame.Components.FinalRebuildHost");
             FinalRebuildHostTryInitializeHook = new Hook(FinalRebuildHost.GetMethod("TryInitialize", BindingFlags.NonPublic | BindingFlags.Instance), FinalRebuildHostTryInitializeHooked);
             FinalRebuildHostUpdateHook = new Hook(FinalRebuildHost.GetMethod("Update", BindingFlags.Public | BindingFlags.Instance), FinalRebuildHostUpdateHooked);
         }
