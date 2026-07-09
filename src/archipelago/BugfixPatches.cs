@@ -79,40 +79,7 @@ namespace FEZAP.Archipelago
             OpenTreasure = typeof(Fez).Assembly.GetType("FezGame.Components.Actions.OpenTreasure");
             OpenTreasureTreasureActorType = OpenTreasure.GetField("treasureActorType", BindingFlags.NonPublic | BindingFlags.Instance);
             OpenTreasureTreasureInstance = OpenTreasure.GetField("treasureInstance", BindingFlags.NonPublic | BindingFlags.Instance);
-            OpenTreasureActHook = new ILHook(OpenTreasure.GetMethod("Act", BindingFlags.NonPublic | BindingFlags.Instance), il => {
-                /*
-                 * OpenTreasure.Act is an incredibly long method which handles way too many things. It handles multi-
-                 * stage animations both for picking up items and opening chests, doing camera changes, playing sounds,
-                 * AND it's responsible for all side effects of picking up those items, such as marking the trile/etc as
-                 * collected/inactive, incrementing the counters/adding items to the list in the save file, etc. Modding
-                 * this function is a total PITA since if we use a Hook, we have to reimplement the _entire method_
-                 * including all of the animation stuff just to change the parts we don't want.
-                 *
-                 * Luckily, almost all of what we want to change is inside a big switch statement. We can use an ILHook
-                 * to manipulate the IL of the method which lets us change just what we care about. We first go to the
-                 * start of the switch statement and insert a call to our own delegate function, where we reimplement
-                 * just a part of the method (in C#!!). Next we insert a branch instruction which branches to a label.
-                 * Finally, we go to after the switch statement (just after the OnHudElementChanged call which we also
-                 * want to skip) and mark that position as our label. That means that after executing our delegate
-                 * function, it will then skip over all the stuff we don't want to execute. I think this is the only way
-                 * to mod this function that doesn't completely suck.
-                 */
-
-                ILCursor cursor = new(il);
-                ILLabel dontSkipLabel = il.DefineLabel();
-                ILLabel skipLabel = il.DefineLabel();
-
-                cursor.GotoNext(MoveType.After, i => i.MatchCallvirt("FezGame.Services.IPlayerManager", "set_Action")); // Move cursor to right after base.PlayerManager.Action = ActionType.Idle;
-                cursor.Emit(OpCodes.Call, typeof(ArchipelagoManager).GetMethod(nameof(ArchipelagoManager.IsConnected), BindingFlags.Public | BindingFlags.Static)); // Are we in an Archipelago?
-                cursor.Emit(OpCodes.Brfalse, dontSkipLabel); // Branch to the original method code if not
-                cursor.Emit(OpCodes.Ldarg_0); // Push `this` onto the stack, to be the "self" argument in our hook
-                cursor.EmitDelegate(OpenTreasureActSwitchHooked); // Call our hooked method
-                cursor.Emit(OpCodes.Br, skipLabel); // Branch to after the code we want to skip
-                cursor.MarkLabel(dontSkipLabel); // Put label at original code position
-
-                cursor.GotoNext(MoveType.After, i => i.MatchCallvirt("FezGame.Services.IGameStateManager", "OnHudElementChanged")); // Move cursor to right after base.GameState.OnHudElementChanged();
-                cursor.MarkLabel(skipLabel); // Put label for where we want to skip to
-            });
+            OpenTreasureActHook = new ILHook(OpenTreasure.GetMethod("Act", BindingFlags.NonPublic | BindingFlags.Instance), CreateOpenTreasureActSwitchHook);
         }
 
         private void BitUpdateHooked(Action<object, GameTime> original, object self, GameTime gameTime)
@@ -174,6 +141,42 @@ namespace FEZAP.Archipelago
                 TrackedCollects.Clear();
             }
             original(self);
+        }
+
+        private void CreateOpenTreasureActSwitchHook(ILContext il)
+        {
+            /*
+             * OpenTreasure.Act is an incredibly long method which handles way too many things. It handles multi-stage
+             * animations both for picking up items and opening chests, doing camera changes, playing sounds, AND it's
+             * responsible for all side effects of picking up those items, such as marking the trile/etc as collected
+             * or inactive, incrementing the counters/adding items to the list in the save file, etc. Modding this
+             * method is a total PITA since if we use a Hook, we have to reimplement the _entire method_ including all
+             * of the animation stuff just to change the parts we don't want.
+             *
+             * Luckily, almost all of what we want to change is inside a big switch statement. We can use an ILHook to
+             * manipulate the IL of the method which lets us change just what we care about. We first go to the start of
+             * the switch statement and insert a call to our own delegate method, where we reimplement just a part of
+             * the method (in C#!!). Next we insert a branch instruction which branches to a label. Finally, we go to
+             * after the switch statement (just after the OnHudElementChanged call which we also want to skip) and mark
+             * that position as our label. That means that after executing our delegate method, it will then skip over
+             * all the stuff we don't want to execute. I think this is the only way to mod this method that doesn't
+             * completely suck.
+             */
+
+            ILCursor cursor = new(il);
+            ILLabel dontSkipLabel = il.DefineLabel();
+            ILLabel skipLabel = il.DefineLabel();
+
+            cursor.GotoNext(MoveType.After, i => i.MatchCallvirt("FezGame.Services.IPlayerManager", "set_Action")); // Move cursor to right after base.PlayerManager.Action = ActionType.Idle;
+            cursor.Emit(OpCodes.Call, typeof(ArchipelagoManager).GetMethod(nameof(ArchipelagoManager.IsConnected), BindingFlags.Public | BindingFlags.Static)); // Are we in an Archipelago?
+            cursor.Emit(OpCodes.Brfalse, dontSkipLabel); // Branch to the original method code if not
+            cursor.Emit(OpCodes.Ldarg_0); // Push `this` onto the stack, to be the "self" argument in our hook
+            cursor.EmitDelegate(OpenTreasureActSwitchHooked); // Call our hooked method
+            cursor.Emit(OpCodes.Br, skipLabel); // Branch to after the code we want to skip
+            cursor.MarkLabel(dontSkipLabel); // Put label at original code position
+
+            cursor.GotoNext(MoveType.After, i => i.MatchCallvirt("FezGame.Services.IGameStateManager", "OnHudElementChanged")); // Move cursor to right after base.GameState.OnHudElementChanged();
+            cursor.MarkLabel(skipLabel); // Put label for where we want to skip to
         }
 
         private void OpenTreasureActSwitchHooked(object self)
