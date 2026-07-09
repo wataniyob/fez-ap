@@ -38,6 +38,12 @@ namespace FEZAP.Archipelago
         private FieldInfo OpenTreasureTreasureInstance;
         private ILHook OpenTreasureActHook;
 
+        private Type FinalRebuildHost;
+        private Hook FinalRebuildHostTryInitializeHook;
+        private Hook FinalRebuildHostUpdateHook;
+        private int finalCubeShards;
+        private int finalSecretCubes;
+
         [ServiceDependency]
         public IGameStateManager GameState { get; set; }
 
@@ -80,6 +86,11 @@ namespace FEZAP.Archipelago
             OpenTreasureTreasureActorType = OpenTreasure.GetField("treasureActorType", BindingFlags.NonPublic | BindingFlags.Instance);
             OpenTreasureTreasureInstance = OpenTreasure.GetField("treasureInstance", BindingFlags.NonPublic | BindingFlags.Instance);
             OpenTreasureActHook = new ILHook(OpenTreasure.GetMethod("Act", BindingFlags.NonPublic | BindingFlags.Instance), CreateOpenTreasureActSwitchHook);
+
+            // Patch FinalRebuildHost to use cube count before the archipelago goal was marked as achieved
+            FinalRebuildHost = typeof(Fez).Assembly.GetType("FezGame.Components.FinalRebuildHost");
+            FinalRebuildHostTryInitializeHook = new Hook(FinalRebuildHost.GetMethod("TryInitialize", BindingFlags.NonPublic | BindingFlags.Instance), FinalRebuildHostTryInitializeHooked);
+            FinalRebuildHostUpdateHook = new Hook(FinalRebuildHost.GetMethod("Update", BindingFlags.Public | BindingFlags.Instance), FinalRebuildHostUpdateHooked);
         }
 
         private void BitUpdateHooked(Action<object, GameTime> original, object self, GameTime gameTime)
@@ -277,12 +288,43 @@ namespace FEZAP.Archipelago
             }
         }
 
+        private void FinalRebuildHostTryInitializeHooked(Action<object> original, object self)
+        {
+            if (!ArchipelagoManager.IsConnected() || (LevelManager.Name != "HEX_REBUILD"))
+            {
+                original(self);
+                return;
+            }
+            finalCubeShards = GameState.SaveData.CubeShards;
+            finalSecretCubes = GameState.SaveData.SecretCubes;
+            original(self);
+            Fezap.locationManager.MonitorGoal();
+        }
+
+        private void FinalRebuildHostUpdateHooked(Action<object, GameTime> original, object self, GameTime gameTime)
+        {
+            if (!ArchipelagoManager.IsConnected() || (LevelManager.Name != "HEX_REBUILD"))
+            {
+                original(self, gameTime);
+                return;
+            }
+            int origCubeShards = GameState.SaveData.CubeShards;
+            int origSecretCubes = GameState.SaveData.SecretCubes;
+            GameState.SaveData.CubeShards = finalCubeShards;
+            GameState.SaveData.SecretCubes = finalSecretCubes;
+            original(self, gameTime);
+            GameState.SaveData.CubeShards = origCubeShards;
+            GameState.SaveData.SecretCubes = origSecretCubes;
+        }
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
             BitUpdateHook.Dispose();
             BitTryInitializeHook.Dispose();
             OpenTreasureActHook.Dispose();
+            FinalRebuildHostTryInitializeHook.Dispose();
+            FinalRebuildHostUpdateHook.Dispose();
         }
     }
 }
