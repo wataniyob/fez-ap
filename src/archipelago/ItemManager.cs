@@ -87,9 +87,11 @@ namespace FEZAP.Archipelago
             {
                 case "Golden Cube":
                     GameState.SaveData.CubeShards += 1;
+                    GameState.OnHudElementChanged();
                     break;
                 case "Anti-Cube":
                     GameState.SaveData.SecretCubes += 1;
+                    GameState.OnHudElementChanged();
                     break;
                 case "Cube Bit":
                     GameState.SaveData.CollectedParts += 1;
@@ -97,7 +99,8 @@ namespace FEZAP.Archipelago
                     {
                         GameState.SaveData.CollectedParts = 0;
                         GameState.SaveData.CubeShards += 1;
-                    } 
+                    }
+                    GameState.OnHudElementChanged();
                     break;
                 case "Owl":
                     GameState.SaveData.CollectedOwls += 1;
@@ -106,86 +109,107 @@ namespace FEZAP.Archipelago
                     GameState.SaveData.PiecesOfHeart += 1;
                     break;
                 case "Arch Map":
-                    GameState.SaveData.Maps.Add("MAP_ARCH");
+                    if (!GameState.SaveData.Maps.Contains("MAP_ARCH"))
+                        GameState.SaveData.Maps.Add("MAP_ARCH");
                     break;
                 case "Crypt Map A":
-                    GameState.SaveData.Maps.Add("MAP_CRYPT_A");
+                    if (!GameState.SaveData.Maps.Contains("MAP_CRYPT_A"))
+                        GameState.SaveData.Maps.Add("MAP_CRYPT_A");
                     break;
                 case "Crypt Map B":
-                    GameState.SaveData.Maps.Add("MAP_CRYPT_B");
+                    if (!GameState.SaveData.Maps.Contains("MAP_CRYPT_B"))
+                        GameState.SaveData.Maps.Add("MAP_CRYPT_B");
                     break;
                 case "Crypt Map C":
-                    GameState.SaveData.Maps.Add("MAP_CRYPT_C");
+                    if (!GameState.SaveData.Maps.Contains("MAP_CRYPT_C"))
+                        GameState.SaveData.Maps.Add("MAP_CRYPT_C");
                     break;
                 case "Crypt Map D":
-                    GameState.SaveData.Maps.Add("MAP_CRYPT_D");
+                    if (!GameState.SaveData.Maps.Contains("MAP_CRYPT_D"))
+                        GameState.SaveData.Maps.Add("MAP_CRYPT_D");
                     break;
                 case "QR Code Map":
-                    GameState.SaveData.Maps.Add("MAP_MYSTERY");
+                    if (!GameState.SaveData.Maps.Contains("MAP_MYSTERY"))
+                        GameState.SaveData.Maps.Add("MAP_MYSTERY");
                     break;
                 case "Pivot Map":
-                    GameState.SaveData.Maps.Add("MAP_PIVOT");
+                    if (!GameState.SaveData.Maps.Contains("MAP_PIVOT"))
+                        GameState.SaveData.Maps.Add("MAP_PIVOT");
                     break;
                 case "Ritual Map":
-                    GameState.SaveData.Maps.Add("MAP_RITUAL");
+                    if (!GameState.SaveData.Maps.Contains("MAP_RITUAL"))
+                        GameState.SaveData.Maps.Add("MAP_RITUAL");
                     break;
                 case "Tree Sky Map":
-                    GameState.SaveData.Maps.Add("MAP_TREE_SKY");
+                    if (!GameState.SaveData.Maps.Contains("MAP_TREE_SKY"))
+                        GameState.SaveData.Maps.Add("MAP_TREE_SKY");
                     break;
                 case "The Writing Cube":
-                    GameState.SaveData.Artifacts.Add(ActorType.LetterCube);
+                    if (!GameState.SaveData.Artifacts.Contains(ActorType.LetterCube))
+                        GameState.SaveData.Artifacts.Add(ActorType.LetterCube);
                     break;
                 case "The Counting Cube":
-                    GameState.SaveData.Artifacts.Add(ActorType.NumberCube);
+                    if (!GameState.SaveData.Artifacts.Contains(ActorType.NumberCube))
+                        GameState.SaveData.Artifacts.Add(ActorType.NumberCube);
                     break;
                 case "The Tome Artifact":
-                    GameState.SaveData.Artifacts.Add(ActorType.Tome);
+                    if (!GameState.SaveData.Artifacts.Contains(ActorType.Tome))
+                        GameState.SaveData.Artifacts.Add(ActorType.Tome);
                     break;
                 case "The Skull Artifact":
-                    GameState.SaveData.Artifacts.Add(ActorType.TriSkull);
+                    if (!GameState.SaveData.Artifacts.Contains(ActorType.TriSkull))
+                        GameState.SaveData.Artifacts.Add(ActorType.TriSkull);
                     break;
                 case "Sunglasses":
                     GameState.SaveData.HasFPView = true;
                     break;
                 case "Boileroom Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("VILLAGEVILLE_3D", [35, 30, 36]));
+                    DoorManager.BoileroomUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Lighthouse Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("LIGHTHOUSE", [21, 20, 27]));
+                    DoorManager.LighthouseUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Tree Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("TREE", [41, 50, 2]));
+                    DoorManager.TreeUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Well Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("RAILS", [14, 21, 14]));
+                    DoorManager.WellUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Windmill Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("PIVOT_ONE", [26, 61, 30]));
+                    DoorManager.WindmillUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Mausoleum Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("MAUSOLEUM", [21, 13, 23]));
+                    DoorManager.MausoleumUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Sewer Hub Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("SEWER_HUB", [10, 42, 9]));
+                    DoorManager.SewerHubUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Sewer Pillars Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("SEWER_PILLARS", [8, 14, 30]));
+                    DoorManager.SewerPillarsUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Arch Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("NATURE_HUB", [16, 18, 15]));
-                    DoorManager.lockedDoors.Remove(new("NATURE_HUB", [16, 18, 15]));
+                    DoorManager.ArchUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Bell Tower Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("NATURE_HUB", [0, 14, 27]));
-                    DoorManager.lockedDoors.Remove(new("NATURE_HUB", [0, 14, 27]));
+                    DoorManager.BellTowerUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Cabin Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("TREE", [24, 59, 20]));
-                    DoorManager.lockedDoors.Remove(new("TREE", [24, 59, 20]));
+                    DoorManager.CabinUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Throne Door Unlocked":
-                    DoorManager.unlockedDoors.Add(new("TREE_SKY", [11, 51, 9]));
-                    DoorManager.lockedDoors.Remove(new("TREE_SKY", [11, 51, 9]));
+                    DoorManager.ThroneUnlocked = true;
+                    Fezap.doorManager.HandleDoors();
                     break;
                 case "Rotation Trap":
                     DoRotationTrap();
@@ -207,6 +231,8 @@ namespace FEZAP.Archipelago
 
         private void DoRotationTrap()
         {
+            if (LevelManager.Flat)
+                return;
             List<int> rotationOptions = [-2, -1, 1, 2];
             int index = RandomHelper.Random.Next(rotationOptions.Count);
             CameraService.Rotate(rotationOptions[index]);

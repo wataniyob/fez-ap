@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Enums;
@@ -92,6 +93,7 @@ namespace FEZAP.Archipelago
             var slotData = session.DataStorage.GetSlotData(session.ConnectionInfo.Slot);
 
             // Restore internal information
+            Fezap.doorManager.ResetDoors();
             Fezap.itemManager.RestoreReceivedItems();
             Fezap.locationManager.RestoreCollectedLocations();
 
@@ -100,15 +102,19 @@ namespace FEZAP.Archipelago
             session.Socket.ErrorReceived += HandleErrorRecv;
             session.Socket.SocketClosed += HandleSocketClosed;
             session.Items.ItemReceived += HandleRecvItem;
+            session.Locations.CheckedLocationsUpdated += HandleRecvLocation;
 
             // Setup door locking/unlocking
-            LevelManager.LevelChanging += Fezap.doorManager.LockDoors;
-            LevelManager.LevelChanging += Fezap.doorManager.UnlockDoors;
+            LevelManager.LevelChanged += Fezap.doorManager.HandleDoors;
 
             // Setup goal checking
             LocationManager.goal = Convert.ToInt32(slotData["goal"]);
             LevelManager.LevelChanged += Fezap.locationManager.MonitorGoal;
             FezugConsole.Print($"Goal: Reach the ending with {LocationManager.goal} Cubes");
+
+            // Disable clock tower antis if they're not shuffled
+            LocationManager.shuffleClockAntis = Convert.ToBoolean(slotData["shuffle_clock_antis"]);
+            Fezap.locationManager.HandleDisabledClockTower();
 
             // Shuffle tetromino codes if in options
             if (Convert.ToBoolean(slotData["scramble_tetrominos"]))
@@ -124,7 +130,7 @@ namespace FEZAP.Archipelago
                 LevelManager.LevelChanging += HandleVisualPainRemoval;
                 FezugConsole.Print("Visual pain disabled");
             }
-            
+
             // put level changes in AP data storage for tracking
             Fezap.regionManager.UpdateCurrentRegion();
             LevelManager.LevelChanged += Fezap.regionManager.UpdateCurrentRegion;
@@ -258,6 +264,14 @@ namespace FEZAP.Archipelago
 
             SoundEffect soundEffect = ContentManagerProvider.Global.Load<SoundEffect>(soundEffectPath);
             soundEffect.EmitAt(PlayerManager.Position).NoAttenuation = true;
+        }
+
+        private static void HandleRecvLocation(ReadOnlyCollection<long> newCheckedLocations)
+        {
+            foreach (long id in newCheckedLocations)
+            {
+                Fezap.locationManager.MarkLocationCollected(id);
+            }
         }
 
         private void HandleVisualPainRemoval()
