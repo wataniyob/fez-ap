@@ -109,7 +109,6 @@ namespace FEZAP.Archipelago
 
             // Setup goal checking
             LocationManager.goal = Convert.ToInt32(slotData["goal"]);
-            LevelManager.LevelChanged += Fezap.locationManager.MonitorGoal;
             FezugConsole.Print($"Goal: Reach the ending with {LocationManager.goal} Cubes");
 
             // Disable clock tower antis if they're not shuffled
