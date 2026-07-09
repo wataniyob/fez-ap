@@ -168,7 +168,7 @@ namespace FEZAP.Archipelago
             ILLabel skipLabel = il.DefineLabel();
 
             cursor.GotoNext(MoveType.After, i => i.MatchCallvirt("FezGame.Services.IPlayerManager", "set_Action")); // Move cursor to right after base.PlayerManager.Action = ActionType.Idle;
-            cursor.Emit(OpCodes.Call, typeof(ArchipelagoManager).GetMethod(nameof(ArchipelagoManager.IsConnected), BindingFlags.Public | BindingFlags.Static)); // Are we in an Archipelago?
+            cursor.EmitDelegate(ArchipelagoManager.IsConnected); // Are we in an Archipelago?
             cursor.Emit(OpCodes.Brfalse, dontSkipLabel); // Branch to the original method code if not
             cursor.Emit(OpCodes.Ldarg_0); // Push `this` onto the stack, to be the "self" argument in our hook
             cursor.EmitDelegate(OpenTreasureActSwitchHooked); // Call our hooked method
