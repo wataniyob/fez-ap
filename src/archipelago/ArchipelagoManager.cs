@@ -106,10 +106,9 @@ namespace FEZAP.Archipelago
             LevelManager.LevelChanging += Fezap.doorManager.UnlockDoors;
 
             // Setup goal checking
-            LocationManager.goal = Convert.ToInt16(slotData["goal"]);
+            LocationManager.goal = Convert.ToInt32(slotData["goal"]);
             LevelManager.LevelChanged += Fezap.locationManager.MonitorGoal;
-            string goalStr = LocationManager.goal == 0 ? "32 Cube Ending" : "64 Cube Ending";
-            FezugConsole.Print($"Goal set to {goalStr}");
+            FezugConsole.Print($"Goal: Reach the ending with {LocationManager.goal} Cubes");
 
             // Shuffle tetromino codes if in options
             if (Convert.ToBoolean(slotData["scramble_tetrominos"]))
