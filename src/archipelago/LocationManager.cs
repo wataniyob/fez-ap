@@ -157,7 +157,7 @@ namespace FEZAP.Archipelago
         public void MonitorGoal()
         {
             int totalCubes = GameState.SaveData.CubeShards + GameState.SaveData.SecretCubes;
-            if ((Level.Name == "GOMEZ_HOUSE_END_32" || Level.Name == "GOMEZ_HOUSE_END_64") && totalCubes >= goal)
+            if (Level.Name == "HEX_REBUILD" && totalCubes >= goal)
             {
                 ArchipelagoManager.session.SetGoalAchieved();
                 FezugConsole.Print("Victory!");
