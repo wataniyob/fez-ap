@@ -5,6 +5,7 @@ using FezEngine.Services.Scripting;
 using FezEngine.Structure;
 using FezEngine.Tools;
 using FezGame;
+using FezGame.Components;
 using FezGame.Services;
 using FezGame.Structure;
 using Microsoft.Xna.Framework;
@@ -17,7 +18,6 @@ namespace FEZAP.Archipelago
 {
     public class BugfixPatches(Game game) : GameComponent(game)
     {
-        private Type BitHost;
         private Hook BitUpdateHook;
         private Hook BitTryInitializeHook;
 
@@ -28,21 +28,20 @@ namespace FEZAP.Archipelago
         private FieldInfo BitSolidCubesField;
         private int bitCollectedCount = 0;
 
-        private Type SwooshingCube;
         private ConstructorInfo SwooshingCubeConstructor;
         private FieldInfo SwooshingCubeSplineField;
         private MethodInfo SwooshingCubeDisposeMethod;
 
-        private Type OpenTreasure;
         private FieldInfo OpenTreasureTreasureActorType;
         private FieldInfo OpenTreasureTreasureInstance;
         private ILHook OpenTreasureActHook;
 
-        private Type FinalRebuildHost;
         private Hook FinalRebuildHostTryInitializeHook;
         private Hook FinalRebuildHostUpdateHook;
         private int finalCubeShards;
         private int finalSecretCubes;
+
+        private Hook DotServiceSayDelegateHook;
 
         [ServiceDependency]
         public IGameStateManager GameState { get; set; }
@@ -62,12 +61,15 @@ namespace FEZAP.Archipelago
         [ServiceDependency]
         public IDotService DotService { get; set; }
 
+        [ServiceDependency]
+        public IDotManager Dot { get; set; }
+
         public override void Initialize()
         {
             base.Initialize();
 
             // Hook the SplitUpCubeHost.Update method to not add a bit to the save file or attempt to spawn a cube
-            BitHost = typeof(Fez).Assembly.GetType("FezGame.Components.SplitUpCubeHost");
+            Type BitHost = typeof(Fez).Assembly.GetType("FezGame.Components.SplitUpCubeHost");
             BitShineOnYouCrazyDiamondsMethod = BitHost.GetMethod("ShineOnYouCrazyDiamonds", BindingFlags.NonPublic | BindingFlags.Instance);
             BitCollectSoundsField = BitHost.GetField("CollectSounds", BindingFlags.NonPublic | BindingFlags.Instance);
             BitTrackedBitsField = BitHost.GetField("TrackedBits", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -76,21 +78,27 @@ namespace FEZAP.Archipelago
             // Also hook TryInitialize to not add in-progress bits and try to assemble a cube
             BitTryInitializeHook = new Hook(BitHost.GetMethod("TryInitialize", BindingFlags.NonPublic | BindingFlags.Instance), BitTryInitializeHooked);
             BitSolidCubesField = BitHost.GetField("SolidCubes", BindingFlags.NonPublic | BindingFlags.Instance);
-            SwooshingCube = BitHost.GetNestedType("SwooshingCube", BindingFlags.NonPublic);
+            Type SwooshingCube = BitHost.GetNestedType("SwooshingCube", BindingFlags.NonPublic);
             SwooshingCubeConstructor = SwooshingCube.GetConstructor([typeof(TrileInstance), typeof(Mesh), typeof(Vector3), typeof(Quaternion)]);
             SwooshingCubeSplineField = SwooshingCube.GetField("Spline", BindingFlags.Public | BindingFlags.Instance);
             SwooshingCubeDisposeMethod = SwooshingCube.GetMethod("Dispose", BindingFlags.Public | BindingFlags.Instance);
 
             // Manipulate the IL for OpenTreasure to reduce side effects
-            OpenTreasure = typeof(Fez).Assembly.GetType("FezGame.Components.Actions.OpenTreasure");
+            Type OpenTreasure = typeof(Fez).Assembly.GetType("FezGame.Components.Actions.OpenTreasure");
             OpenTreasureTreasureActorType = OpenTreasure.GetField("treasureActorType", BindingFlags.NonPublic | BindingFlags.Instance);
             OpenTreasureTreasureInstance = OpenTreasure.GetField("treasureInstance", BindingFlags.NonPublic | BindingFlags.Instance);
             OpenTreasureActHook = new ILHook(OpenTreasure.GetMethod("Act", BindingFlags.NonPublic | BindingFlags.Instance), CreateOpenTreasureActSwitchHook);
 
             // Patch FinalRebuildHost to use cube count before the archipelago goal was marked as achieved
-            FinalRebuildHost = typeof(Fez).Assembly.GetType("FezGame.Components.FinalRebuildHost");
+            Type FinalRebuildHost = typeof(Fez).Assembly.GetType("FezGame.Components.FinalRebuildHost");
             FinalRebuildHostTryInitializeHook = new Hook(FinalRebuildHost.GetMethod("TryInitialize", BindingFlags.NonPublic | BindingFlags.Instance), FinalRebuildHostTryInitializeHooked);
             FinalRebuildHostUpdateHook = new Hook(FinalRebuildHost.GetMethod("Update", BindingFlags.Public | BindingFlags.Instance), FinalRebuildHostUpdateHooked);
+
+            // Patch DotHost.Say delegate to prevent getting interrupted by Emotional Support
+            Type DotService = typeof(Fez).Assembly.GetType("FezGame.Services.Scripting.DotService");
+            Type DotServiceSayDelegateType = DotService.GetNestedTypes(BindingFlags.NonPublic).First(type => type.Name.Contains("<Say>")); // Is this stable across platforms?
+            MethodInfo DotServiceSayDelegate = DotServiceSayDelegateType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).First(m => m.Name.Contains("m__0")); // Is this stable across platforms?
+            DotServiceSayDelegateHook = new Hook(DotServiceSayDelegate, DotServiceSayDelegateHooked);
         }
 
         private void BitUpdateHooked(Action<object, GameTime> original, object self, GameTime gameTime)
@@ -317,6 +325,14 @@ namespace FEZAP.Archipelago
             GameState.SaveData.SecretCubes = origSecretCubes;
         }
 
+        private bool DotServiceSayDelegateHooked(Func<object, float, float, bool> original, object self, float f1, float f2)
+        {
+            if (Dot.Behaviour == DotHost.BehaviourType.SpiralAroundWithCamera)
+                return false;
+
+            return original(self, f1, f2);
+        }
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -325,6 +341,7 @@ namespace FEZAP.Archipelago
             OpenTreasureActHook.Dispose();
             FinalRebuildHostTryInitializeHook.Dispose();
             FinalRebuildHostUpdateHook.Dispose();
+            DotServiceSayDelegateHook.Dispose();
         }
     }
 }
