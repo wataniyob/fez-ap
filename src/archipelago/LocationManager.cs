@@ -33,7 +33,7 @@ namespace FEZAP.Archipelago
 
         public static CollectibleData receivedCollectibleData = new();
         public static List<Location> allCollectedLocations = [];
-        public static int goal;  // 0 is 32 Cubes and 1 is 64 Cubes
+        public static int goal;  // number of cubes required to unlock the goal
         public static bool shuffleClockAntis;
 
         public void RestoreCollectedLocations()
@@ -326,12 +326,7 @@ namespace FEZAP.Archipelago
         public void MonitorGoal()
         {
             int totalCubes = GameState.SaveData.CubeShards + GameState.SaveData.SecretCubes;
-            if ((goal == 0) && Level.Name == "HEX_REBUILD" && totalCubes >= 32)
-            {
-                ArchipelagoManager.session.SetGoalAchieved();
-                FezugConsole.Print("Victory!");
-            }
-            else if ((goal == 1) && Level.Name == "GOMEZ_HOUSE_END_64" && totalCubes >= 64)
+            if (Level.Name == "HEX_REBUILD" && totalCubes >= goal)
             {
                 ArchipelagoManager.session.SetGoalAchieved();
                 FezugConsole.Print("Victory!");
