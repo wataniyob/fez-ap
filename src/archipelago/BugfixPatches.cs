@@ -95,10 +95,9 @@ namespace FEZAP.Archipelago
             FinalRebuildHostUpdateHook = new Hook(FinalRebuildHost.GetMethod("Update", BindingFlags.Public | BindingFlags.Instance), FinalRebuildHostUpdateHooked);
 
             // Patch DotHost.Say delegate to prevent getting interrupted by Emotional Support
-            Type DotService = typeof(Fez).Assembly.GetType("FezGame.Services.Scripting.DotService");
-            Type DotServiceSayDelegateType = DotService.GetNestedTypes(BindingFlags.NonPublic).First(t => t.Name.Contains("<Say>") || t.Name.Contains("<>c__DisplayClass4_0")); // Compiler dependant, need these different cases for unix vs windows... Will it be stable?
-            MethodInfo DotServiceSayDelegate = DotServiceSayDelegateType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).First(m => m.Name.Contains("m__0") || m.Name.Contains("b__0")); // ^
-            DotServiceSayDelegateHook = new Hook(DotServiceSayDelegate, DotServiceSayDelegateHooked);
+            MethodInfo DotServiceSayDelegate = FindDotServiceSayDelegate();
+            if (DotServiceSayDelegate != null)
+                DotServiceSayDelegateHook = new Hook(DotServiceSayDelegate, DotServiceSayDelegateHooked);
         }
 
         private void BitUpdateHooked(Action<object, GameTime> original, object self, GameTime gameTime)
@@ -325,6 +324,39 @@ namespace FEZAP.Archipelago
             GameState.SaveData.SecretCubes = origSecretCubes;
         }
 
+        private MethodInfo FindDotServiceSayDelegate()
+        {
+            // The thing we need to patch is a delegate function inside DotService.Say. That delegate is also in a
+            // closure which relys on local variables, and these names are compiler generate and compiler dependant...
+            // I know the function signature (returns bool, takes two floats) so I try to find that one. Hopefully it
+            // finds the right one (there aren't many, it should find the right one)
+            Type DotServiceType = typeof(Fez).Assembly.GetType("FezGame.Services.Scripting.DotService");
+            List<MethodInfo> candidates = [];
+            foreach (Type type in DotServiceType.GetNestedTypes(BindingFlags.NonPublic))
+            {
+                foreach (MethodInfo method in type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance))
+                {
+                    if (type.Name.Contains("<Say>") || method.Name.Contains("<Say>")) // On Linux+Mac the type contains "<Say>", on Windows the function contains "<Say>"
+                    {
+                        if (method.ReturnParameter.ParameterType == typeof(bool)
+                                && method.GetParameters().Length == 2
+                                && method.GetParameters().All(param => param.ParameterType == typeof(float)))
+                        {
+                            candidates.Add(method);
+                        }
+                    }
+                }
+            }
+            if (candidates.Count() == 0)
+            {
+                Console.WriteLine("WARNING: Couldn't find DotService.Say delegate method to patch... Emotional Support softlocks are still possible. Please report this!");
+                return null;
+            }
+            if (candidates.Count() > 1)
+                Console.WriteLine("WARNING: MORE THAN ONE DotService.Say delegate method matched... Patching one but it could be wrong! Please report this!");
+            return candidates[0];
+        }
+
         private bool DotServiceSayDelegateHooked(Func<object, float, float, bool> original, object self, float f1, float f2)
         {
             if (Dot.Behaviour == DotHost.BehaviourType.SpiralAroundWithCamera)
@@ -341,7 +373,7 @@ namespace FEZAP.Archipelago
             OpenTreasureActHook.Dispose();
             FinalRebuildHostTryInitializeHook.Dispose();
             FinalRebuildHostUpdateHook.Dispose();
-            DotServiceSayDelegateHook.Dispose();
+            DotServiceSayDelegateHook?.Dispose();
         }
     }
 }
