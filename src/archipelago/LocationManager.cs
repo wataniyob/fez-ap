@@ -1,28 +1,11 @@
 using FezEngine.Services;
-using FezEngine.Structure;
 using FezEngine.Tools;
 using FezGame.Services;
 using FezGame.Structure;
 using FEZUG.Features.Console;
-using FEZUG.Helpers;
-using Microsoft.Xna.Framework;
 
 namespace FEZAP.Archipelago
 {
-    /// Collectible data container
-    public readonly struct CollectibleData(List<ActorType> artifacts, int collectedOwls, int collectedParts, int cubeShards,
-                                           int keys, List<string> maps, int piecesOfHeart, int secretCubes)
-    {
-        public readonly List<ActorType> artifacts = artifacts;
-        public readonly int collectedOwls = collectedOwls;
-        public readonly int collectedParts = collectedParts;
-        public readonly int cubeShards = cubeShards;
-        public readonly int keys = keys;
-        public readonly List<string> maps = maps;
-        public readonly int piecesOfHeart = piecesOfHeart;
-        public readonly int secretCubes = secretCubes;
-    };
-
     public class LocationManager
     {
         [ServiceDependency]
@@ -31,7 +14,6 @@ namespace FEZAP.Archipelago
         [ServiceDependency]
         public ILevelManager Level { get; set; }
 
-        public static CollectibleData receivedCollectibleData = new();
         public static List<Location> allCollectedLocations = [];
         public static int goal;  // number of cubes required to unlock the goal
         public static bool shuffleClockAntis;
@@ -280,26 +262,6 @@ namespace FEZAP.Archipelago
                 }
             }
             return collectedLocations;
-        }
-
-        public void MonitorCollectibles()
-        {
-            CollectibleData currentCollectibleData = new(
-                GameState.SaveData.Artifacts,
-                GameState.SaveData.CollectedOwls,
-                GameState.SaveData.CollectedParts,
-                GameState.SaveData.CubeShards,
-                GameState.SaveData.Keys,
-                GameState.SaveData.Maps,
-                GameState.SaveData.PiecesOfHeart,
-                GameState.SaveData.SecretCubes
-            );
-
-            // Remove what was collected
-            if (!currentCollectibleData.Equals(receivedCollectibleData))
-            {
-                Fezap.itemManager.RestoreReceivedItems();
-            }
         }
 
         public void MonitorLocations()
