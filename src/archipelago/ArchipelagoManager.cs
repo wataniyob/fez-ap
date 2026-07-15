@@ -198,6 +198,11 @@ namespace FEZAP.Archipelago
 
         private void HandleSocketClosed(string reason)
         {
+            LevelManager.LevelChanged -= Fezap.doorManager.HandleDoors;
+            LevelManager.LevelChanging -= HandleVisualPainRemoval;
+            LevelManager.LevelChanged -= Fezap.regionManager.UpdateCurrentRegion;
+            LevelManager.LevelChanging -= Fezap.dialogueManager.LoadNpcHintDialogue;
+            deathLinkService = null;
             if (reason != "")
             {
                 FezugConsole.Print($"Socket closed: {reason}", FezugConsole.OutputType.Error);
