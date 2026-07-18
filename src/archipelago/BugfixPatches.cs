@@ -43,6 +43,8 @@ namespace FEZAP.Archipelago
 
         private Hook DotServiceSayDelegateHook;
 
+        private ILHook GameNpcStateTryStopTalkingHook;
+
         [ServiceDependency]
         public IGameStateManager GameState { get; set; }
 
@@ -98,6 +100,9 @@ namespace FEZAP.Archipelago
             MethodInfo DotServiceSayDelegate = FindDotServiceSayDelegate();
             if (DotServiceSayDelegate != null)
                 DotServiceSayDelegateHook = new Hook(DotServiceSayDelegate, DotServiceSayDelegateHooked);
+
+            // Patch GameNpcState.TryStopTalking to not increment the CollectedOwls count
+            GameNpcStateTryStopTalkingHook = new ILHook(typeof(GameNpcState).GetMethod("TryStopTalking", BindingFlags.NonPublic | BindingFlags.Instance), CreateGameNpcStateTryStopTalkingHook);
         }
 
         private void BitUpdateHooked(Action<object, GameTime> original, object self, GameTime gameTime)
@@ -365,6 +370,19 @@ namespace FEZAP.Archipelago
             return original(self, f1, f2);
         }
 
+        private void CreateGameNpcStateTryStopTalkingHook(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            ILLabel skipLabel = il.DefineLabel();
+
+            // If we're in an archipelago, skip over GameState.SaveData.CollectedOwls++;
+            cursor.GotoNext(MoveType.After, i => i.MatchCall("FezEngine.Components.NpcState", "UpdateAction"));
+            cursor.EmitDelegate(ArchipelagoManager.IsConnected);
+            cursor.Emit(OpCodes.Brtrue, skipLabel);
+            cursor.GotoNext(MoveType.After, i => i.MatchStfld("FezGame.Structure.SaveData", "CollectedOwls"));
+            cursor.MarkLabel(skipLabel);
+        }
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
@@ -374,6 +392,7 @@ namespace FEZAP.Archipelago
             FinalRebuildHostTryInitializeHook.Dispose();
             FinalRebuildHostUpdateHook.Dispose();
             DotServiceSayDelegateHook?.Dispose();
+            GameNpcStateTryStopTalkingHook.Dispose();
         }
     }
 }

@@ -9,6 +9,20 @@ using FEZUG.Features.Console;
 
 namespace FEZAP.Archipelago
 {
+    /// Collectible data container
+    public struct CollectibleData(List<ActorType> Artifacts, int CollectedOwls, int CollectedParts, int CubeShards,
+                                  int Keys, List<string> Maps, int PiecesOfHeart, int SecretCubes)
+    {
+        public List<ActorType> Artifacts = Artifacts;
+        public int CollectedOwls = CollectedOwls;
+        public int CollectedParts = CollectedParts;
+        public int CubeShards = CubeShards;
+        public int Keys = Keys;
+        public List<string> Maps = Maps;
+        public int PiecesOfHeart = PiecesOfHeart;
+        public int SecretCubes = SecretCubes;
+    };
+
     internal enum ItemSound
     {
         Progression,
@@ -37,6 +51,13 @@ namespace FEZAP.Archipelago
         [ServiceDependency]
         public IDotService DotService { private get; set; }
 
+        public static CollectibleData ReceivedCollectibleData = new([], 0, 0, 0, 0, [], 0, 0);
+
+        public static bool IsOneTimeItem(string itemName)
+        {
+            return itemName.Contains("Trap") || (itemName == "Emotional Support");
+        }
+
         private static readonly List<string> EmotionalSupportMsgs = [
             " wants you to know you got this",
             " believes in you",
@@ -44,121 +65,103 @@ namespace FEZAP.Archipelago
             " is rooting for you"
         ];
 
-        private void ClearCollectibleSaveData()
-        {
-            GameState.SaveData.Artifacts = [];
-            GameState.SaveData.CollectedOwls = 0;
-            GameState.SaveData.CollectedParts = 0;
-            GameState.SaveData.CubeShards = 0;
-            GameState.SaveData.Keys = 0;
-            GameState.SaveData.Maps = [];
-            GameState.SaveData.PiecesOfHeart = 0;
-            GameState.SaveData.SecretCubes = 0;
-        }
-
-        public void RestoreReceivedItems()
-        {
-            ClearCollectibleSaveData();
-
-            List<ItemInfo> itemsReceived = [.. ArchipelagoManager.session.Items.AllItemsReceived];
-            foreach (ItemInfo item in itemsReceived)
-            {
-                if (!(item.ItemName.Contains("Trap") || (item.ItemName == "Emotional Support")))
-                {
-                    HandleReceivedItem(item);
-                }
-            }
-
-            LocationManager.receivedCollectibleData = new(
-                GameState.SaveData.Artifacts,
-                GameState.SaveData.CollectedOwls,
-                GameState.SaveData.CollectedParts,
-                GameState.SaveData.CubeShards,
-                GameState.SaveData.Keys,
-                GameState.SaveData.Maps,
-                GameState.SaveData.PiecesOfHeart,
-                GameState.SaveData.SecretCubes
-            );
-        }
-
         public void HandleReceivedItem(ItemInfo item)
         {
             switch (item.ItemName)
             {
                 case "Golden Cube":
-                    GameState.SaveData.CubeShards += 1;
+                    ReceivedCollectibleData.CubeShards++;
+                    GameState.SaveData.CubeShards = ReceivedCollectibleData.CubeShards;
                     GameState.OnHudElementChanged();
                     break;
                 case "Anti-Cube":
-                    GameState.SaveData.SecretCubes += 1;
+                    ReceivedCollectibleData.SecretCubes++;
+                    GameState.SaveData.SecretCubes = ReceivedCollectibleData.SecretCubes;
                     GameState.OnHudElementChanged();
                     break;
                 case "Cube Bit":
-                    GameState.SaveData.CollectedParts += 1;
-                    if (GameState.SaveData.CollectedParts == 8)
+                    ReceivedCollectibleData.CollectedParts++;
+                    if (ReceivedCollectibleData.CollectedParts == 8)
                     {
-                        GameState.SaveData.CollectedParts = 0;
-                        GameState.SaveData.CubeShards += 1;
+                        ReceivedCollectibleData.CollectedParts = 0;
+                        ReceivedCollectibleData.CubeShards++;
+                        GameState.SaveData.CubeShards = ReceivedCollectibleData.CubeShards;
                     }
+                    GameState.SaveData.CollectedParts = ReceivedCollectibleData.CollectedParts;
                     GameState.OnHudElementChanged();
                     break;
                 case "Owl":
-                    GameState.SaveData.CollectedOwls += 1;
+                    ReceivedCollectibleData.CollectedOwls++;
+                    GameState.SaveData.CollectedOwls = ReceivedCollectibleData.CollectedOwls;
                     break;
                 case "Heart Cube":
-                    GameState.SaveData.PiecesOfHeart += 1;
+                    ReceivedCollectibleData.PiecesOfHeart++;
+                    GameState.SaveData.PiecesOfHeart = ReceivedCollectibleData.PiecesOfHeart;
                     break;
                 case "Arch Map":
-                    if (!GameState.SaveData.Maps.Contains("MAP_ARCH"))
-                        GameState.SaveData.Maps.Add("MAP_ARCH");
+                    if (!ReceivedCollectibleData.Maps.Contains("MAP_ARCH"))
+                        ReceivedCollectibleData.Maps.Add("MAP_ARCH");
+                    GameState.SaveData.Maps = [.. ReceivedCollectibleData.Maps];
                     break;
                 case "Crypt Map A":
-                    if (!GameState.SaveData.Maps.Contains("MAP_CRYPT_A"))
-                        GameState.SaveData.Maps.Add("MAP_CRYPT_A");
+                    if (!ReceivedCollectibleData.Maps.Contains("MAP_CRYPT_A"))
+                        ReceivedCollectibleData.Maps.Add("MAP_CRYPT_A");
+                    GameState.SaveData.Maps = [.. ReceivedCollectibleData.Maps];
                     break;
                 case "Crypt Map B":
-                    if (!GameState.SaveData.Maps.Contains("MAP_CRYPT_B"))
-                        GameState.SaveData.Maps.Add("MAP_CRYPT_B");
+                    if (!ReceivedCollectibleData.Maps.Contains("MAP_CRYPT_B"))
+                        ReceivedCollectibleData.Maps.Add("MAP_CRYPT_B");
+                    GameState.SaveData.Maps = [.. ReceivedCollectibleData.Maps];
                     break;
                 case "Crypt Map C":
-                    if (!GameState.SaveData.Maps.Contains("MAP_CRYPT_C"))
-                        GameState.SaveData.Maps.Add("MAP_CRYPT_C");
+                    if (!ReceivedCollectibleData.Maps.Contains("MAP_CRYPT_C"))
+                        ReceivedCollectibleData.Maps.Add("MAP_CRYPT_C");
+                    GameState.SaveData.Maps = [.. ReceivedCollectibleData.Maps];
                     break;
                 case "Crypt Map D":
-                    if (!GameState.SaveData.Maps.Contains("MAP_CRYPT_D"))
-                        GameState.SaveData.Maps.Add("MAP_CRYPT_D");
+                    if (!ReceivedCollectibleData.Maps.Contains("MAP_CRYPT_D"))
+                        ReceivedCollectibleData.Maps.Add("MAP_CRYPT_D");
+                    GameState.SaveData.Maps = [.. ReceivedCollectibleData.Maps];
                     break;
                 case "QR Code Map":
-                    if (!GameState.SaveData.Maps.Contains("MAP_MYSTERY"))
-                        GameState.SaveData.Maps.Add("MAP_MYSTERY");
+                    if (!ReceivedCollectibleData.Maps.Contains("MAP_MYSTERY"))
+                        ReceivedCollectibleData.Maps.Add("MAP_MYSTERY");
+                    GameState.SaveData.Maps = [.. ReceivedCollectibleData.Maps];
                     break;
                 case "Pivot Map":
-                    if (!GameState.SaveData.Maps.Contains("MAP_PIVOT"))
-                        GameState.SaveData.Maps.Add("MAP_PIVOT");
+                    if (!ReceivedCollectibleData.Maps.Contains("MAP_PIVOT"))
+                        ReceivedCollectibleData.Maps.Add("MAP_PIVOT");
+                    GameState.SaveData.Maps = [.. ReceivedCollectibleData.Maps];
                     break;
                 case "Ritual Map":
-                    if (!GameState.SaveData.Maps.Contains("MAP_RITUAL"))
-                        GameState.SaveData.Maps.Add("MAP_RITUAL");
+                    if (!ReceivedCollectibleData.Maps.Contains("MAP_RITUAL"))
+                        ReceivedCollectibleData.Maps.Add("MAP_RITUAL");
+                    GameState.SaveData.Maps = [.. ReceivedCollectibleData.Maps];
                     break;
                 case "Tree Sky Map":
-                    if (!GameState.SaveData.Maps.Contains("MAP_TREE_SKY"))
-                        GameState.SaveData.Maps.Add("MAP_TREE_SKY");
+                    if (!ReceivedCollectibleData.Maps.Contains("MAP_TREE_SKY"))
+                        ReceivedCollectibleData.Maps.Add("MAP_TREE_SKY");
+                    GameState.SaveData.Maps = [.. ReceivedCollectibleData.Maps];
                     break;
                 case "The Writing Cube":
-                    if (!GameState.SaveData.Artifacts.Contains(ActorType.LetterCube))
-                        GameState.SaveData.Artifacts.Add(ActorType.LetterCube);
+                    if (!ReceivedCollectibleData.Artifacts.Contains(ActorType.LetterCube))
+                        ReceivedCollectibleData.Artifacts.Add(ActorType.LetterCube);
+                    GameState.SaveData.Artifacts = [.. ReceivedCollectibleData.Artifacts];
                     break;
                 case "The Counting Cube":
-                    if (!GameState.SaveData.Artifacts.Contains(ActorType.NumberCube))
-                        GameState.SaveData.Artifacts.Add(ActorType.NumberCube);
+                    if (!ReceivedCollectibleData.Artifacts.Contains(ActorType.NumberCube))
+                        ReceivedCollectibleData.Artifacts.Add(ActorType.NumberCube);
+                    GameState.SaveData.Artifacts = [.. ReceivedCollectibleData.Artifacts];
                     break;
                 case "The Tome Artifact":
-                    if (!GameState.SaveData.Artifacts.Contains(ActorType.Tome))
-                        GameState.SaveData.Artifacts.Add(ActorType.Tome);
+                    if (!ReceivedCollectibleData.Artifacts.Contains(ActorType.Tome))
+                        ReceivedCollectibleData.Artifacts.Add(ActorType.Tome);
+                    GameState.SaveData.Artifacts = [.. ReceivedCollectibleData.Artifacts];
                     break;
                 case "The Skull Artifact":
-                    if (!GameState.SaveData.Artifacts.Contains(ActorType.TriSkull))
-                        GameState.SaveData.Artifacts.Add(ActorType.TriSkull);
+                    if (!ReceivedCollectibleData.Artifacts.Contains(ActorType.TriSkull))
+                        ReceivedCollectibleData.Artifacts.Add(ActorType.TriSkull);
+                    GameState.SaveData.Artifacts = [.. ReceivedCollectibleData.Artifacts];
                     break;
                 case "Sunglasses":
                     GameState.SaveData.HasFPView = true;
@@ -226,6 +229,66 @@ namespace FEZAP.Archipelago
                 default:
                     FezugConsole.Print($"Unknown item: {item.ItemDisplayName}", FezugConsole.OutputType.Error);
                     break;
+            }
+        }
+
+        public void MonitorItems()
+        {
+            if (!GameState.SaveData.Artifacts.SequenceEqual(ReceivedCollectibleData.Artifacts))
+            {
+                #if DEBUG
+                FezugConsole.Print("Artifacts mismatch!", FezugConsole.OutputType.Warning);
+                #endif // DEBUG
+                GameState.SaveData.Artifacts = [.. ReceivedCollectibleData.Artifacts];
+            }
+            if (GameState.SaveData.CollectedOwls != ReceivedCollectibleData.CollectedOwls)
+            {
+                #if DEBUG
+                FezugConsole.Print("CollectedOwls mismatch!", FezugConsole.OutputType.Warning);
+                #endif // DEBUG
+                GameState.SaveData.CollectedOwls = ReceivedCollectibleData.CollectedOwls;
+            }
+            if (GameState.SaveData.CollectedParts != ReceivedCollectibleData.CollectedParts)
+            {
+                #if DEBUG
+                FezugConsole.Print("CollectedParts mismatch!", FezugConsole.OutputType.Warning);
+                #endif // DEBUG
+                GameState.SaveData.CollectedParts = ReceivedCollectibleData.CollectedParts;
+            }
+            if (GameState.SaveData.CubeShards != ReceivedCollectibleData.CubeShards)
+            {
+                #if DEBUG
+                FezugConsole.Print("CubeShards mismatch!", FezugConsole.OutputType.Warning);
+                #endif // DEBUG
+                GameState.SaveData.CubeShards = ReceivedCollectibleData.CubeShards;
+            }
+            if (GameState.SaveData.Keys != ReceivedCollectibleData.Keys)
+            {
+                #if DEBUG
+                FezugConsole.Print("Keys mismatch!", FezugConsole.OutputType.Warning);
+                #endif // DEBUG
+                GameState.SaveData.Keys = ReceivedCollectibleData.Keys;
+            }
+            if (!GameState.SaveData.Maps.SequenceEqual(ReceivedCollectibleData.Maps))
+            {
+                #if DEBUG
+                FezugConsole.Print("Maps mismatch!", FezugConsole.OutputType.Warning);
+                #endif // DEBUG
+                GameState.SaveData.Maps = [.. ReceivedCollectibleData.Maps];
+            }
+            if (GameState.SaveData.PiecesOfHeart != ReceivedCollectibleData.PiecesOfHeart)
+            {
+                #if DEBUG
+                FezugConsole.Print("PiecesOfHeart mismatch!", FezugConsole.OutputType.Warning);
+                #endif // DEBUG
+                GameState.SaveData.PiecesOfHeart = ReceivedCollectibleData.PiecesOfHeart;
+            }
+            if (GameState.SaveData.SecretCubes != ReceivedCollectibleData.SecretCubes)
+            {
+                #if DEBUG
+                FezugConsole.Print("SecretCubes mismatch!", FezugConsole.OutputType.Warning);
+                #endif // DEBUG
+                GameState.SaveData.SecretCubes = ReceivedCollectibleData.SecretCubes;
             }
         }
 
