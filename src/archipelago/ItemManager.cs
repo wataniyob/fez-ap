@@ -23,6 +23,12 @@ namespace FEZAP.Archipelago
         public int SecretCubes = SecretCubes;
     };
 
+    public struct AbilityData(bool Carry, bool TurnObjects)
+    {
+        public bool Carry = Carry;
+        public bool TurnObjects = TurnObjects;
+    }
+
     internal enum ItemSound
     {
         Progression,
@@ -64,6 +70,8 @@ namespace FEZAP.Archipelago
             " is cheering you on",
             " is rooting for you"
         ];
+
+        public static AbilityData ReceivedAbilityData = new(false, false);
 
         public void HandleReceivedItem(ItemInfo item)
         {
@@ -213,6 +221,12 @@ namespace FEZAP.Archipelago
                 case "Throne Door Unlocked":
                     DoorManager.ThroneUnlocked = true;
                     Fezap.doorManager.HandleDoors();
+                    break;
+                case "Carry":
+                    ReceivedAbilityData.Carry = true;
+                    break;
+                case "Turn Objects":
+                    ReceivedAbilityData.TurnObjects = true;
                     break;
                 case "Rotation Trap":
                     DoRotationTrap();
