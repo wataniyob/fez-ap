@@ -3,6 +3,7 @@ using FezGame;
 using Microsoft.Xna.Framework;
 using FEZAP.Archipelago;
 using FEZUG;
+using FezAP.src.archipelago;
 
 namespace FEZAP
 {
@@ -23,6 +24,7 @@ namespace FEZAP
         public static readonly ItemManager itemManager = new();
         public static readonly LocationManager locationManager = new();
         public static readonly RegionManager regionManager = new();
+        public static readonly AbilityManager abilityManager = new();
         public static List<DelayedAction> delayedActions = [];
         public static Fez Fez { get; private set; }
         public static GameTime GameTime { get; private set; }
@@ -41,6 +43,8 @@ namespace FEZAP
             base.Initialize();
             Fezug.Initialize();
 
+            abilityManager.Init();
+
             // Inject all our code
             ServiceHelper.InjectServices(archipelagoManager);
             ServiceHelper.InjectServices(deathManager);
@@ -49,6 +53,7 @@ namespace FEZAP
             ServiceHelper.InjectServices(itemManager);
             ServiceHelper.InjectServices(locationManager);
             ServiceHelper.InjectServices(regionManager);
+            ServiceHelper.InjectServices(abilityManager);
         }
 
         public override void Update(GameTime gameTime)

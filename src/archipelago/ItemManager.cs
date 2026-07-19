@@ -9,6 +9,12 @@ using FEZUG.Features.Console;
 
 namespace FEZAP.Archipelago
 {
+    public struct AbilityData(bool Carry, bool TurnObjects)
+    {
+        public bool Carry = Carry;
+        public bool TurnObjects = TurnObjects;
+    }
+
     internal enum ItemSound
     {
         Progression,
@@ -43,6 +49,8 @@ namespace FEZAP.Archipelago
             " is cheering you on",
             " is rooting for you"
         ];
+
+        public static AbilityData ReceivedAbilityData = new(false, false);
 
         private void ClearCollectibleSaveData()
         {
@@ -186,6 +194,12 @@ namespace FEZAP.Archipelago
                 case "Throne Door Unlocked":
                     DoorManager.unlockedDoors.Add(new("TREE_SKY", [11, 51, 9]));
                     DoorManager.lockedDoors.Remove(new("TREE_SKY", [11, 51, 9]));
+                    break;
+                case "Carry":
+                    ReceivedAbilityData.Carry = true;
+                    break;
+                case "Turn Objects":
+                    ReceivedAbilityData.TurnObjects = true;
                     break;
                 case "Rotation Trap":
                     DoRotationTrap();
