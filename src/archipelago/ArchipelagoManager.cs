@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Archipelago.MultiClient.Net;
 using Archipelago.MultiClient.Net.BounceFeatures.DeathLink;
 using Archipelago.MultiClient.Net.Enums;
@@ -68,6 +69,17 @@ namespace FEZAP.Archipelago
             connectInitFinished = false;
             connectionInfo = new(server, port, user, pass);
             session = ArchipelagoSessionFactory.CreateSession(server, port);
+
+            // Bind AP events
+            session.MessageLog.OnMessageReceived += HandleLogMsg;
+            session.Socket.ErrorReceived += HandleErrorRecv;
+            session.Socket.SocketClosed += HandleSocketClosed;
+            session.Items.ItemReceived += HandleRecvItem;
+            session.Locations.CheckedLocationsUpdated += HandleRecvLocation;
+
+            ItemManager.ReceivedCollectibleData = new([], 0, 0, 0, 0, [], 0, 0);
+            Fezap.doorManager.ResetDoors();
+
             LoginResult result = session.TryConnectAndLogin(gameName, user, ItemsHandlingFlags.AllItems, password: pass, requestSlotData: true);
 
             if (result.Successful)
@@ -93,24 +105,16 @@ namespace FEZAP.Archipelago
             FezugConsole.Print("Connected successfully");
             var slotData = session.DataStorage.GetSlotData(session.ConnectionInfo.Slot);
 
-            // Restore internal information
-            Fezap.itemManager.RestoreReceivedItems();
-            Fezap.locationManager.RestoreCollectedLocations();
-
-            // Bind AP events
-            session.MessageLog.OnMessageReceived += HandleLogMsg;
-            session.Socket.ErrorReceived += HandleErrorRecv;
-            session.Socket.SocketClosed += HandleSocketClosed;
-            session.Items.ItemReceived += HandleRecvItem;
-
             // Setup door locking/unlocking
-            LevelManager.LevelChanging += Fezap.doorManager.LockDoors;
-            LevelManager.LevelChanging += Fezap.doorManager.UnlockDoors;
+            LevelManager.LevelChanged += Fezap.doorManager.HandleDoors;
 
             // Setup goal checking
             LocationManager.goal = Convert.ToInt32(slotData["goal"]);
-            LevelManager.LevelChanged += Fezap.locationManager.MonitorGoal;
             FezugConsole.Print($"Goal: Reach the ending with {LocationManager.goal} Cubes");
+
+            // Disable clock tower antis if they're not shuffled
+            LocationManager.shuffleClockAntis = Convert.ToBoolean(slotData["shuffle_clock_antis"]);
+            Fezap.locationManager.HandleDisabledClockTower();
 
             // Shuffle tetromino codes if in options
             if (Convert.ToBoolean(slotData["scramble_tetrominos"]))
@@ -126,7 +130,7 @@ namespace FEZAP.Archipelago
                 LevelManager.LevelChanging += HandleVisualPainRemoval;
                 FezugConsole.Print("Visual pain disabled");
             }
-            
+
             // put level changes in AP data storage for tracking
             Fezap.regionManager.UpdateCurrentRegion();
             LevelManager.LevelChanged += Fezap.regionManager.UpdateCurrentRegion;
@@ -196,6 +200,11 @@ namespace FEZAP.Archipelago
 
         private void HandleSocketClosed(string reason)
         {
+            LevelManager.LevelChanged -= Fezap.doorManager.HandleDoors;
+            LevelManager.LevelChanging -= HandleVisualPainRemoval;
+            LevelManager.LevelChanged -= Fezap.regionManager.UpdateCurrentRegion;
+            LevelManager.LevelChanging -= Fezap.dialogueManager.LoadNpcHintDialogue;
+            deathLinkService = null;
             if (reason != "")
             {
                 FezugConsole.Print($"Socket closed: {reason}", FezugConsole.OutputType.Error);
@@ -238,11 +247,14 @@ namespace FEZAP.Archipelago
             while (helper.Any())
             {
                 ItemInfo item = helper.DequeueItem();
-                if (item.Player.Name != connectionInfo.user)
+                if (!connectInitFinished && ItemManager.IsOneTimeItem(item.ItemName))
+                    continue;
+                if (connectInitFinished)
                 {
-                    FezugConsole.Print($"Received {item.ItemDisplayName} from {item.Player.Alias} ({item.LocationName})");
+                    if (item.Player.Name != connectionInfo.user)
+                        FezugConsole.Print($"Received {item.ItemDisplayName} from {item.Player.Alias} ({item.LocationName})");
+                    Fezap.archipelagoManager.PlaySound(item.Flags);
                 }
-                Fezap.archipelagoManager.PlaySound(item.Flags);
                 Fezap.itemManager.HandleReceivedItem(item);
             }
         }
@@ -260,6 +272,14 @@ namespace FEZAP.Archipelago
 
             SoundEffect soundEffect = ContentManagerProvider.Global.Load<SoundEffect>(soundEffectPath);
             soundEffect.EmitAt(PlayerManager.Position).NoAttenuation = true;
+        }
+
+        private static void HandleRecvLocation(ReadOnlyCollection<long> newCheckedLocations)
+        {
+            foreach (long id in newCheckedLocations)
+            {
+                Fezap.locationManager.MarkLocationCollected(id);
+            }
         }
 
         private void HandleVisualPainRemoval()
@@ -286,7 +306,7 @@ namespace FEZAP.Archipelago
             if (updateCounter++ > 10 && IsConnected())
             {
                 updateCounter = 0;
-                Fezap.locationManager.MonitorCollectibles();
+                Fezap.itemManager.MonitorItems();
                 Fezap.locationManager.MonitorLocations();
                 Fezap.deathManager.MonitorDeath();
             }
