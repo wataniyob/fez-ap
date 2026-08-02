@@ -1,5 +1,4 @@
-﻿using FEZAP.Archipelago;
-using FezEngine.Services.Scripting;
+﻿using FezEngine.Services.Scripting;
 using FezEngine.Tools;
 using FezGame;
 using FezGame.Services;
@@ -7,7 +6,7 @@ using FezGame.Structure;
 using MonoMod.RuntimeDetour;
 using System.Reflection;
 
-namespace FezAP.src.archipelago
+namespace FEZAP.Archipelago
 {
     public class AbilityManager
     {

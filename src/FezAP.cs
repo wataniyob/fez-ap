@@ -3,7 +3,6 @@ using FezGame;
 using Microsoft.Xna.Framework;
 using FEZAP.Archipelago;
 using FEZUG;
-using FezAP.src.archipelago;
 
 namespace FEZAP
 {
