@@ -1,21 +1,11 @@
 ﻿using FEZAP.Archipelago;
-using FezEngine.Components.Scripting;
 using FezEngine.Services.Scripting;
 using FezEngine.Tools;
 using FezGame;
-using FezGame.Components;
-using FezGame.Components.Actions;
 using FezGame.Services;
 using FezGame.Structure;
-using Microsoft.Xna.Framework;
-using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
-using System;
-using System.Collections;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FezAP.src.archipelago
 {
