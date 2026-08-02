@@ -29,7 +29,7 @@ namespace FezAP.src.archipelago
 
         private Hook LiftAllowedHook;
 
-        private Hook PushPivotAllowedHook;
+        private Hook TurnPivotAllowedHook;
 
         private Hook ValvesBoltsAllowedHook;
 
@@ -42,14 +42,14 @@ namespace FezAP.src.archipelago
 
             Type PivotsHost = typeof(Fez).Assembly.GetType("FezGame.Components.PivotsHost");
             Type PivotState = PivotsHost.GetNestedType("PivotState", BindingFlags.NonPublic);
-            PushPivotAllowedHook = new Hook(PivotState.GetMethod("Spin", BindingFlags.Public | BindingFlags.Instance), PushPivotAllowedHooked);
+            TurnPivotAllowedHook = new Hook(PivotState.GetMethod("Spin", BindingFlags.Public | BindingFlags.Instance), TurnObjectsAllowedHooked);
 
             Type ValvesBoltsHost = typeof(Fez).Assembly.GetType("FezGame.Components.ValvesBoltsTimeswitchesHost");
             Type ValveState = ValvesBoltsHost.GetNestedType("ValveState", BindingFlags.NonPublic);
-            ValvesBoltsAllowedHook = new Hook(ValveState.GetMethod("GrabOnto", BindingFlags.Public | BindingFlags.Instance), PushPivotAllowedHooked);
+            ValvesBoltsAllowedHook = new Hook(ValveState.GetMethod("GrabOnto", BindingFlags.Public | BindingFlags.Instance), TurnObjectsAllowedHooked);
 
             Type PivotTombstoneAction = typeof(Fez).Assembly.GetType("FezGame.Components.Actions.PivotTombstone");
-            GrabTombstoneAllowedHook = new Hook(PivotTombstoneAction.GetMethod("Begin", BindingFlags.NonPublic | BindingFlags.Instance), PushPivotAllowedHooked);
+            GrabTombstoneAllowedHook = new Hook(PivotTombstoneAction.GetMethod("Begin", BindingFlags.NonPublic | BindingFlags.Instance), TurnObjectsAllowedHooked);
         }
 
         private void LiftAllowedHooked(Action<object> original, object self)
@@ -64,11 +64,11 @@ namespace FezAP.src.archipelago
             PlayerManager.CarriedInstance = null;
             PlayerManager.PushedInstance = null;
 
-            string LiftMsg = "You can't carry things yet";
+            string LiftMsg = "You can't carry objects yet";
             DotService.Say($"@{LiftMsg}", true, true);
         }
 
-        private void PushPivotAllowedHooked(Action<object> original, object self)
+        private void TurnObjectsAllowedHooked(Action<object> original, object self)
         {
             if (ItemManager.ReceivedAbilityData.TurnObjects || !ArchipelagoManager.IsConnected())
             {
@@ -78,7 +78,7 @@ namespace FezAP.src.archipelago
 
             PlayerManager.Action = ActionType.Idle;
 
-            string PivotMsg = "You can't turn pivot objects yet";
+            string PivotMsg = "You can't turn objects yet";
             DotService.Say($"@{PivotMsg}", true, true);
         }
     }
