@@ -17,7 +17,7 @@ using MonoMod.RuntimeDetour;
  */
 namespace FEZAP.Archipelago
 {
-    public class CollectBitPatch(Game game) : GameComponent(game)
+    public class CollectBitPatch : IFezapPatch
     {
         private Hook BitUpdateHook;
         private Hook BitTryInitializeHook;
@@ -45,10 +45,8 @@ namespace FEZAP.Archipelago
         [ServiceDependency]
         public IGameLevelManager LevelManager { get; set; }
 
-        public override void Initialize()
+        public void Init()
         {
-            base.Initialize();
-
             // Hook the SplitUpCubeHost.Update method to not add a bit to the save file or attempt to spawn a cube
             Type BitHost = typeof(Fez).Assembly.GetType("FezGame.Components.SplitUpCubeHost");
             BitShineOnYouCrazyDiamondsMethod = BitHost.GetMethod("ShineOnYouCrazyDiamonds", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -127,9 +125,8 @@ namespace FEZAP.Archipelago
             original(self);
         }
 
-        protected override void Dispose(bool disposing)
+        public void Dispose()
         {
-            base.Dispose(disposing);
             BitUpdateHook.Dispose();
             BitTryInitializeHook.Dispose();
         }

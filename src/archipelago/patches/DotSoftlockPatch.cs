@@ -2,7 +2,7 @@ using System.Reflection;
 using FezEngine.Tools;
 using FezGame;
 using FezGame.Components;
-using Microsoft.Xna.Framework;
+using FEZUG.Features.Console;
 using MonoMod.RuntimeDetour;
 
 /*
@@ -16,17 +16,15 @@ using MonoMod.RuntimeDetour;
  */
 namespace FEZAP.Archipelago
 {
-    public class DotSoftlockPatch(Game game) : GameComponent(game)
+    public class DotSoftlockPatch : IFezapPatch
     {
         private Hook DotServiceSayDelegateHook;
 
         [ServiceDependency]
         public IDotManager Dot { get; set; }
 
-        public override void Initialize()
+        public void Init()
         {
-            base.Initialize();
-
             // Patch DotHost.Say delegate to prevent getting interrupted by Emotional Support
             MethodInfo DotServiceSayDelegate = FindDotServiceSayDelegate();
             if (DotServiceSayDelegate != null)
@@ -58,11 +56,11 @@ namespace FEZAP.Archipelago
             }
             if (candidates.Count() == 0)
             {
-                Console.WriteLine("WARNING: Couldn't find DotService.Say delegate method to patch... Emotional Support softlocks are still possible. Please report this!");
+                FezugConsole.Print("WARNING: Couldn't find DotService.Say delegate method to patch... Emotional Support softlocks are still possible. Please report this!", FezugConsole.OutputType.Warning);
                 return null;
             }
             if (candidates.Count() > 1)
-                Console.WriteLine("WARNING: MORE THAN ONE DotService.Say delegate method matched... Patching one but it could be wrong! Please report this!");
+                FezugConsole.Print("WARNING: MORE THAN ONE DotService.Say delegate method matched... Patching one but it could be wrong! Please report this!", FezugConsole.OutputType.Warning);
             return candidates[0];
         }
 
@@ -74,9 +72,8 @@ namespace FEZAP.Archipelago
             return original(self, f1, f2);
         }
 
-        protected override void Dispose(bool disposing)
+        public void Dispose()
         {
-            base.Dispose(disposing);
             DotServiceSayDelegateHook?.Dispose();
         }
     }

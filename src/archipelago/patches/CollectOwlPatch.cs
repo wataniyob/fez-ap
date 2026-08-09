@@ -1,6 +1,5 @@
 using System.Reflection;
 using FezGame.Components;
-using Microsoft.Xna.Framework;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
@@ -12,14 +11,12 @@ using MonoMod.RuntimeDetour;
  */
 namespace FEZAP.Archipelago
 {
-    public class CollectOwlPatch(Game game) : GameComponent(game)
+    public class CollectOwlPatch : IFezapPatch
     {
         private ILHook GameNpcStateTryStopTalkingHook;
 
-        public override void Initialize()
+        public void Init()
         {
-            base.Initialize();
-
             // Patch GameNpcState.TryStopTalking to not increment the CollectedOwls count
             GameNpcStateTryStopTalkingHook = new ILHook(typeof(GameNpcState).GetMethod("TryStopTalking", BindingFlags.NonPublic | BindingFlags.Instance), CreateGameNpcStateTryStopTalkingHook);
         }
@@ -37,9 +34,8 @@ namespace FEZAP.Archipelago
             cursor.MarkLabel(skipLabel);
         }
 
-        protected override void Dispose(bool disposing)
+        public void Dispose()
         {
-            base.Dispose(disposing);
             GameNpcStateTryStopTalkingHook.Dispose();
         }
     }
