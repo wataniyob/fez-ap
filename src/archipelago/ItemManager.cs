@@ -174,8 +174,8 @@ namespace FEZAP.Archipelago
                     DoorManager.LighthouseUnlocked = true;
                     Fezap.doorManager.HandleDoors();
                     break;
-                case "Tree Door Unlocked":
-                    DoorManager.TreeUnlocked = true;
+                case "Tree Crumble Door Unlocked":
+                    DoorManager.TreeCrumbleUnlocked = true;
                     Fezap.doorManager.HandleDoors();
                     break;
                 case "Well Door Unlocked":
@@ -190,12 +190,12 @@ namespace FEZAP.Archipelago
                     DoorManager.MausoleumUnlocked = true;
                     Fezap.doorManager.HandleDoors();
                     break;
-                case "Sewer Hub Door Unlocked":
-                    DoorManager.SewerHubUnlocked = true;
+                case "Sewer QR Door Unlocked":
+                    DoorManager.SewerQrUnlocked = true;
                     Fezap.doorManager.HandleDoors();
                     break;
-                case "Sewer Pillars Door Unlocked":
-                    DoorManager.SewerPillarsUnlocked = true;
+                case "Sewer Fork Door Unlocked":
+                    DoorManager.SewerForkUnlocked = true;
                     Fezap.doorManager.HandleDoors();
                     break;
                 case "Arch Door Unlocked":
