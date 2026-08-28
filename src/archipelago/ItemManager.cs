@@ -9,6 +9,12 @@ using FEZUG.Features.Console;
 
 namespace FEZAP.Archipelago
 {
+    public struct AbilityData(bool Carry, bool TurnObjects)
+    {
+        public bool Carry = Carry;
+        public bool TurnObjects = TurnObjects;
+    }
+
     /// Collectible data container
     public struct CollectibleData(List<ActorType> Artifacts, int CollectedOwls, int CollectedParts, int CubeShards,
                                   int Keys, List<string> Maps, int PiecesOfHeart, int SecretCubes)
@@ -50,6 +56,8 @@ namespace FEZAP.Archipelago
 
         [ServiceDependency]
         public IDotService DotService { private get; set; }
+
+        public static AbilityData ReceivedAbilityData = new(false, false);
 
         public static CollectibleData ReceivedCollectibleData = new([], 0, 0, 0, 0, [], 0, 0);
 
@@ -213,6 +221,12 @@ namespace FEZAP.Archipelago
                 case "Throne Door Unlocked":
                     DoorManager.ThroneUnlocked = true;
                     Fezap.doorManager.HandleDoors();
+                    break;
+                case "Carry":
+                    ReceivedAbilityData.Carry = true;
+                    break;
+                case "Turn Objects":
+                    ReceivedAbilityData.TurnObjects = true;
                     break;
                 case "Rotation Trap":
                     DoRotationTrap();
