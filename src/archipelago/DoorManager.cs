@@ -16,12 +16,12 @@ namespace FEZAP.Archipelago
 
         public static bool BoileroomUnlocked = false;
         public static bool LighthouseUnlocked = false;
-        public static bool TreeUnlocked = false;
+        public static bool TreeCrumbleUnlocked = false;
         public static bool WellUnlocked = false;
         public static bool WindmillUnlocked = false;
         public static bool MausoleumUnlocked = false;
-        public static bool SewerHubUnlocked = false;
-        public static bool SewerPillarsUnlocked = false;
+        public static bool SewerQrUnlocked = false;
+        public static bool SewerForkUnlocked = false;
         public static bool ArchUnlocked = false;
         public static bool BellTowerUnlocked = false;
         public static bool CabinUnlocked = false;
@@ -31,12 +31,12 @@ namespace FEZAP.Archipelago
         {
             BoileroomUnlocked = false;
             LighthouseUnlocked = false;
-            TreeUnlocked = false;
+            TreeCrumbleUnlocked = false;
             WellUnlocked = false;
             WindmillUnlocked = false;
             MausoleumUnlocked = false;
-            SewerHubUnlocked = false;
-            SewerPillarsUnlocked = false;
+            SewerQrUnlocked = false;
+            SewerForkUnlocked = false;
             ArchUnlocked = false;
             BellTowerUnlocked = false;
             CabinUnlocked = false;
@@ -76,17 +76,17 @@ namespace FEZAP.Archipelago
                     break;
                 case "SEWER_HUB":
                     pos = new(10, 42, 9);
-                    if (SewerHubUnlocked)
+                    if (SewerQrUnlocked)
                         SwapToDoor(pos, "SEWER DOOR 2 B", "SEWER DOOR 2 A");
                     break;
                 case "SEWER_PILLARS":
                     pos = new(8, 14, 30);
-                    if (SewerPillarsUnlocked)
+                    if (SewerForkUnlocked)
                         SwapToDoor(pos, "SEWER DOOR 1", "SEWER DOOR 0");
                     break;
                 case "TREE":
                     pos = new(41, 50, 2);
-                    if (TreeUnlocked)
+                    if (TreeCrumbleUnlocked)
                         SwapToDoor(pos, "WOODEN DOOR B", "WOODEN DOOR A", 0);
                     pos = new(24, 59, 20);
                     if (!CabinUnlocked)
