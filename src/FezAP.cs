@@ -23,7 +23,7 @@ namespace FEZAP
         public static readonly ItemManager itemManager = new();
         public static readonly LocationManager locationManager = new();
         public static readonly RegionManager regionManager = new();
-        public static readonly AbilityManager abilityManager = new();
+        public static readonly PatchManager patchManager = new();
         public static List<DelayedAction> delayedActions = [];
         public static Fez Fez { get; private set; }
         public static GameTime GameTime { get; private set; }
@@ -31,6 +31,7 @@ namespace FEZAP
         public Fezap(Game game) : base(game)
         {
             Fez = (Fez)game;
+            GameTime = new GameTime();
             Enabled = true;
             Visible = true;
             DrawOrder = 99999;
@@ -42,7 +43,7 @@ namespace FEZAP
             base.Initialize();
             Fezug.Initialize();
 
-            abilityManager.Init();
+            patchManager.Init();
 
             // Inject all our code
             ServiceHelper.InjectServices(archipelagoManager);
@@ -52,7 +53,6 @@ namespace FEZAP
             ServiceHelper.InjectServices(itemManager);
             ServiceHelper.InjectServices(locationManager);
             ServiceHelper.InjectServices(regionManager);
-            ServiceHelper.InjectServices(abilityManager);
         }
 
         public override void Update(GameTime gameTime)
@@ -79,6 +79,12 @@ namespace FEZAP
             Fezug.Draw(gameTime);
             // TODO: Figure out why this sometimes causes a crash. Needed for invisible wireframe drawing.
             // FezugInGameRendering.Draw(gameTime);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            patchManager.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

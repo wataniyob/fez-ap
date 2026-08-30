@@ -4,7 +4,6 @@ using FezEngine.Structure;
 using FezEngine.Tools;
 using FezGame;
 using FezGame.Services;
-using Microsoft.Xna.Framework;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
@@ -29,7 +28,7 @@ using MonoMod.RuntimeDetour;
  */
 namespace FEZAP.Archipelago
 {
-    public class CollectTreasurePatch(Game game) : GameComponent(game)
+    public class CollectTreasurePatch : IFezapPatch
     {
         private FieldInfo OpenTreasureTreasureActorType;
         private FieldInfo OpenTreasureTreasureInstance;
@@ -44,10 +43,8 @@ namespace FEZAP.Archipelago
         [ServiceDependency]
         public IDotService DotService { get; set; }
 
-        public override void Initialize()
+        public void Init()
         {
-            base.Initialize();
-
             // Manipulate the IL for OpenTreasure to reduce side effects
             Type OpenTreasure = typeof(Fez).Assembly.GetType("FezGame.Components.Actions.OpenTreasure");
             OpenTreasureTreasureActorType = OpenTreasure.GetField("treasureActorType", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -171,9 +168,8 @@ namespace FEZAP.Archipelago
             }
         }
 
-        protected override void Dispose(bool disposing)
+        public void Dispose()
         {
-            base.Dispose(disposing);
             OpenTreasureActHook.Dispose();
         }
     }

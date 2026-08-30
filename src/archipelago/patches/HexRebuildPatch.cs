@@ -17,7 +17,7 @@ using MonoMod.RuntimeDetour;
  */
 namespace FEZAP.Archipelago
 {
-    public class HexRebuildPatch(Game game) : GameComponent(game)
+    public class HexRebuildPatch : IFezapPatch
     {
         private Hook FinalRebuildHostTryInitializeHook;
         private Hook FinalRebuildHostUpdateHook;
@@ -30,10 +30,8 @@ namespace FEZAP.Archipelago
         [ServiceDependency]
         public IGameLevelManager LevelManager { get; set; }
 
-        public override void Initialize()
+        public void Init()
         {
-            base.Initialize();
-
             // Patch FinalRebuildHost to use cube count before the archipelago goal was marked as achieved
             Type FinalRebuildHost = typeof(Fez).Assembly.GetType("FezGame.Components.FinalRebuildHost");
             FinalRebuildHostTryInitializeHook = new Hook(FinalRebuildHost.GetMethod("TryInitialize", BindingFlags.NonPublic | BindingFlags.Instance), FinalRebuildHostTryInitializeHooked);
@@ -69,9 +67,8 @@ namespace FEZAP.Archipelago
             GameState.SaveData.SecretCubes = origSecretCubes;
         }
 
-        protected override void Dispose(bool disposing)
+        public void Dispose()
         {
-            base.Dispose(disposing);
             FinalRebuildHostTryInitializeHook.Dispose();
             FinalRebuildHostUpdateHook.Dispose();
         }

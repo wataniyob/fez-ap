@@ -14,8 +14,6 @@ namespace FEZAP.Archipelago
 
         private const BindingFlags Flags = BindingFlags.NonPublic | BindingFlags.Static;
 
-        private static IInputManager InputManager;
-        private static readonly Type volHostType = typeof(Fez).Assembly.GetType("FezGame.Components.VolumesHost");
         private static readonly Dictionary<CodeInput, CodeInput> codeInputMap = new();
         private static readonly Dictionary<CodeInput, CodeInput> reverseInputMap = new();
 
@@ -31,7 +29,6 @@ namespace FEZAP.Archipelago
 
         public override void Initialize()
         {
-            InputManager = ServiceHelper.Get<IInputManager>();
             codeMachine = (Dictionary<CodeInput, int[]>)typeof(Fez).Assembly.GetType("FezGame.Components.CodeMachineHost").GetField("BitPatterns", Flags).GetValue(null);
             originalCodeMachine = new Dictionary<CodeInput, int[]>(codeMachine);
 
@@ -42,10 +39,6 @@ namespace FEZAP.Archipelago
             originalQrMapCode = (CodeInput[])qrMapCode.Clone();
             flyCode = (CodeInput[])GameWideCodes.GetField("JetpackCode", Flags).GetValue(null);
             originalFlyCode = (CodeInput[])flyCode.Clone();
-
-            var detour = new MonoMod.RuntimeDetour.Hook(
-                volHostType.GetMethod("GrabInput", BindingFlags.NonPublic | BindingFlags.Instance),
-                CustomCodeInputMethod);
         }
 
         public static void ShuffleCodeInputs(string seed)
@@ -67,6 +60,13 @@ namespace FEZAP.Archipelago
             }
             UpdateGameWideCodes();
             FezugConsole.Print("Tetrominos scrambled");
+        }
+
+        public static CodeInput GetScrambledCode(CodeInput codeInput)
+        {
+            if (codeInputMap.ContainsKey(codeInput))
+                return codeInputMap[codeInput];
+            return codeInput;
         }
 
         private static void ShuffleInputs(string seed, CodeInput[] array)
@@ -120,53 +120,6 @@ namespace FEZAP.Archipelago
             {
                 flyCode[i] = reverseInputMap[originalFlyCode[i]];
             }
-        }
-
-        private static bool CustomCodeInputMethod(object self)
-        {
-            var inputField = volHostType.GetField("Input", BindingFlags.NonPublic | BindingFlags.Instance);
-            CodeInput codeInput = CodeInput.None;
-            if (InputManager.Jump == FezButtonState.Pressed)
-            {
-                codeInput = CodeInput.Jump;
-            }
-            else if (InputManager.RotateRight == FezButtonState.Pressed)
-            {
-                codeInput = CodeInput.SpinRight;
-            }
-            else if (InputManager.RotateLeft == FezButtonState.Pressed)
-            {
-                codeInput = CodeInput.SpinLeft;
-            }
-            else if (InputManager.Left == FezButtonState.Pressed)
-            {
-                codeInput = CodeInput.Left;
-            }
-            else if (InputManager.Right == FezButtonState.Pressed)
-            {
-                codeInput = CodeInput.Right;
-            }
-            else if (InputManager.Up == FezButtonState.Pressed)
-            {
-                codeInput = CodeInput.Up;
-            }
-            else if (InputManager.Down == FezButtonState.Pressed)
-            {
-                codeInput = CodeInput.Down;
-            }
-            if (codeInput == CodeInput.None)
-            {
-                return false;
-            }
-            var Input = (List<CodeInput>)inputField.GetValue(self);
-            if (codeInputMap.ContainsKey(codeInput))
-                codeInput = codeInputMap[codeInput];
-            Input.Add(codeInput);
-            if (Input.Count > 16)
-            {
-                Input.RemoveAt(0);
-            }
-            return true;
         }
     }
 }
